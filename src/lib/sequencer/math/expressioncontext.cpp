@@ -22,7 +22,10 @@
 #include "expressioncontext.h"
 #include "sequencer/exprtk/exprtk.hpp"
 #include "sequencer/math/expressionevaluator.h"
+#include <sup/dto/anytype.h>
 #include <sup/dto/anyvalue.h>
+#include <sup/dto/anyvalue_helper.h>
+#include <sup/dto/basic_scalar_types.h>
 #include <iostream>
 #include <utility>
 
@@ -65,9 +68,9 @@ sup::dto::AnyValue ExpressionContext::EvaluateExpression()
   evaluator.Setup();
 
   float result = evaluator.Evaluate();
+  sup::dto::AnyValue output(result);
 
-  sup::dto::AnyValue toreturn(result);
-  return toreturn;
+  return output;
 }
 
 }  // namespace math

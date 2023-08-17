@@ -99,7 +99,7 @@ TEST_F(MathTest, Success)
     <Workspace>
         <Local name="x" type='{"type":"uint64"}' value='5' />
         <Local name="y" type='{"type":"uint64"}' value='3' />
-        <Local name="z" type='{"type":"uint64"}' />
+        <Local name="z" />
         <Local name="a" type='{"type":"uint64"}' value='12' />
     </Workspace>
 )"};
@@ -108,3 +108,23 @@ TEST_F(MathTest, Success)
   auto proc = ParseProcedureString(test::CreateProcedureString(body));
   EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
 }
+
+TEST_F(MathTest, TypeFailure)
+{
+  const std::string body{
+    R"(
+    <Sequence>
+        <Math expression="x+y-3" outVar="z" />
+    </Sequence>
+    <Workspace>
+        <Local name="x" type='{"type":"uint8"}' value='1' />
+        <Local name="y" type='{"type":"uint8"}' value='1' />
+        <Local name="z" />
+    </Workspace>
+)"};
+
+  test::NullUserInterface ui;
+  auto proc = ParseProcedureString(test::CreateProcedureString(body));
+  EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::FAILURE));
+}
+

@@ -76,32 +76,40 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
   std::map<std::string, sup::dto::AnyValue> ws_vars;
   for (const auto& var_name : var_names)
   {
+    // read the variable from the workspace
     if (!ws.HasVariable(var_name) || !ws.GetValue(var_name, value))
     {
       return ExecutionStatus::FAILURE;
     }
-
+    // Only numeric and array types are accepted
+    if (value.GetTypeCode() == dto::TypeCode::Char8 || value.GetTypeCode() == dto::TypeCode::String
+        || value.GetTypeCode() == dto::TypeCode::Struct)
+    {
+      return ExecutionStatus::FAILURE;
+    }
     ws_vars.emplace(var_name, value);
   }
 
+  // convert input variables to be processed by the math library
   if (!expr_ctx.ConvertVariables(ws_vars))
   {
     return ExecutionStatus::FAILURE;
   }
 
-  value = expr_ctx.EvaluateExpression();
-  auto result = GetAttributeValue<std::string>(OUT_STRING_ATTR_NAME);
+  sup::dto::AnyType in_type(value.GetType());
+  sup::dto::AnyValue return_value(in_type);
+  sup::dto::AnyValue output;
+  output = expr_ctx.EvaluateExpression();
 
-  if (!ws.HasVariable(result))
+  // convert the output value to the same type as the input
+  if (!sup::dto::TryConvert(return_value, output))
   {
-      return ExecutionStatus::FAILURE;
+    return ExecutionStatus::FAILURE;
   }
 
-  // } else {
-  //   auto result =
-  // }
+  auto result = GetAttributeValue<std::string>(OUT_STRING_ATTR_NAME);
 
-  if (!ws.SetValue(result, value))
+  if (!ws.HasVariable(result) || !ws.SetValue(result, return_value))
   {
     return ExecutionStatus::FAILURE;
   }
