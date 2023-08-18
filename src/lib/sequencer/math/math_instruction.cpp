@@ -66,34 +66,24 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
   auto expression = GetAttributeValue<std::string>(EXPR_STRING_ATTR_NAME);
   sup::math::ExpressionContext expr_ctx(expression);
 
-  std::vector<std::string> var_names = expr_ctx.CollectVariables();
-  if (var_names.empty())
-  {
-    return ExecutionStatus::FAILURE;
-  }
 
   sup::dto::AnyValue value;
-  std::map<std::string, sup::dto::AnyValue> ws_vars;
-  for (const auto& var_name : var_names)
+  for (auto variable : expr_ctx)
   {
+    std::string var_name = variable.first;
     // read the variable from the workspace
     if (!ws.HasVariable(var_name) || !ws.GetValue(var_name, value))
     {
       return ExecutionStatus::FAILURE;
     }
     // Only numeric and array types are accepted
-    if (value.GetTypeCode() == dto::TypeCode::Char8 || value.GetTypeCode() == dto::TypeCode::String
-        || value.GetTypeCode() == dto::TypeCode::Struct)
+    if (value.GetTypeCode() == dto::TypeCode::Char8 ||
+        value.GetTypeCode() == dto::TypeCode::String ||
+        value.GetTypeCode() == dto::TypeCode::Struct)
     {
       return ExecutionStatus::FAILURE;
     }
-    ws_vars.emplace(var_name, value);
-  }
-
-  // convert input variables to be processed by the math library
-  if (!expr_ctx.ConvertVariables(ws_vars))
-  {
-    return ExecutionStatus::FAILURE;
+    expr_ctx.ConvertVariable(var_name, value);
   }
 
   sup::dto::AnyType in_type(value.GetType());

@@ -13,7 +13,6 @@ target_sources(sequencer-math
     PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/math_instruction.cpp
         ${CMAKE_CURRENT_LIST_DIR}/expressioncontext.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/expressionevaluator.cpp
 )
 
 target_include_directories(sequencer-math PUBLIC

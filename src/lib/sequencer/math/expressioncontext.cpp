@@ -21,12 +21,13 @@
 
 #include "expressioncontext.h"
 #include "sequencer/exprtk/exprtk.hpp"
-#include "sequencer/math/expressionevaluator.h"
 #include <sup/dto/anytype.h>
 #include <sup/dto/anyvalue.h>
 #include <sup/dto/anyvalue_helper.h>
 #include <sup/dto/basic_scalar_types.h>
+#include <cmath>
 #include <iostream>
+#include <string>
 #include <utility>
 
 namespace sup
@@ -35,41 +36,50 @@ namespace math
 {
 
 ExpressionContext::ExpressionContext(const std::string& expression)
-    : m_expression(expression)
+    : m_in_expression(expression)
 {
+  exprtk::collect_variables(m_in_expression, m_list_vars);
+
+  for (const auto &name : m_list_vars)
+  {
+    m_proc_vars.emplace(name, std::nan(""));
+  }
+
 }
 
-std::vector<std::string> ExpressionContext::CollectVariables()
+ProcessVariableMap::iterator ExpressionContext::begin()
 {
-  std::vector<std::string> variable_list;
-
-  exprtk::collect_variables(m_expression, variable_list);
-
-  return variable_list;
+  return m_proc_vars.begin();
 }
 
-bool ExpressionContext::ConvertVariables(InVariableMap in_variables)
+ProcessVariableMap::iterator ExpressionContext::end()
 {
-  for (const auto& entry : in_variables)
+  return m_proc_vars.end();
+}
+
+void ExpressionContext::ConvertVariable(const std::string& name, dto::AnyValue& val)
+{
+  m_proc_vars.at(name) = val.As<double>();
+}
+
+void ExpressionContext::ConfigureExpression()
+{
+  for (auto& entry : m_proc_vars)
   {
-    m_proc_vars.emplace(entry.first, entry.second.As<float>());
+    m_symbol_table.add_variable(entry.first, entry.second);
   }
-  if (m_proc_vars.empty())
-  {
-    return false;
-  }
-  return true;
+
+  m_expression.register_symbol_table(m_symbol_table);
+
+  m_parser.compile(m_in_expression, m_expression);
 }
 
 sup::dto::AnyValue ExpressionContext::EvaluateExpression()
 {
-  ExpressionEvaluator evaluator(m_expression, m_proc_vars);
 
-  evaluator.Setup();
+  ConfigureExpression();
 
-  float result = evaluator.Evaluate();
-  sup::dto::AnyValue output(result);
-
+  sup::dto::AnyValue output(m_expression.value());
   return output;
 }
 

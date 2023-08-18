@@ -22,12 +22,13 @@
 #ifndef SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 #define SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 
+#include "../exprtk/exprtk.hpp"
+
 #include <string>
 #include <vector>
 #include <map>
 
 #include <sup/dto/anyvalue.h>
-#include "expressionevaluator.h"
 
 namespace sup
 {
@@ -38,29 +39,32 @@ namespace math
  * @brief Processes Anyvalue variables for mathmatical expression evaluation
  *
  */
-using InVariableMap = std::map<std::string, sup::dto::AnyValue>;
-using ProcessVariableMap = std::map<std::string, float>;
+using ProcessVariableMap = std::map<const std::string, double>;
 
 class ExpressionContext
 {
 public:
   ExpressionContext(const std::string& expression);
 
-  std::vector<std::string> CollectVariables();
+  ProcessVariableMap::iterator begin();
 
-  bool ConvertVariables(InVariableMap in_variables);
+  ProcessVariableMap::iterator end();
+
+  void ConvertVariable(const std::string& var, dto::AnyValue& val);
 
   sup::dto::AnyValue EvaluateExpression();
 
 private:
   void ConfigureExpression();
 
-  std::string m_expression;
+  std::string m_in_expression;
+  std::vector<std::string> m_list_vars;
   ProcessVariableMap m_proc_vars;
 
-  /* std::map<std::string, float> variableMap_; */
-  /* expression_t expression_; */
-  /* exprtk::parser<float> parser_; */
+  exprtk::symbol_table<double> m_symbol_table;
+  exprtk::expression<double> m_expression;
+  exprtk::parser<double> m_parser;
+
 };
 
 }  // namespace math
