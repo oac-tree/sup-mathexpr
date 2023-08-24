@@ -20,31 +20,20 @@
  ******************************************************************************/
 
 #include "expressioncontext.h"
-#include "sequencer/exprtk/exprtk.hpp"
-#include <sup/dto/anytype.h>
-#include <sup/dto/anyvalue.h>
-#include <sup/dto/anyvalue_helper.h>
-#include <sup/dto/basic_scalar_types.h>
-#include <cmath>
-#include <iostream>
-#include <string>
-#include <utility>
 
 namespace sup
 {
 namespace math
 {
 
-ExpressionContext::ExpressionContext(const std::string& expression)
-    : m_in_expression(expression)
+ExpressionContext::ExpressionContext(const std::string& expression) : m_in_expression(expression)
 {
   exprtk::collect_variables(m_in_expression, m_list_vars);
 
-  for (const auto &name : m_list_vars)
+  for (const auto& name : m_list_vars)
   {
-    m_proc_vars.emplace(name, std::nan(""));
+    m_proc_vars.emplace(name, std::vector<double>{std::nan("")});
   }
-
 }
 
 ProcessVariableMap::iterator ExpressionContext::begin()
@@ -59,27 +48,60 @@ ProcessVariableMap::iterator ExpressionContext::end()
 
 void ExpressionContext::ConvertVariable(const std::string& name, dto::AnyValue& val)
 {
-  m_proc_vars.at(name) = val.As<double>();
+  // Check if the key exists in the map
+
+  if (m_proc_vars.count(name))
+  {
+    // If the key exists, get a reference to the vector associated with the key
+    auto& vec = m_proc_vars.at(name);
+    // Check if the vector is not empty
+    if (sup::dto::IsArrayValue(val))
+    {
+      vec.resize(val.NumberOfElements());
+      for (size_t i = 0; i < val.NumberOfElements(); i++)
+      {
+        vec[i] = val[i].As<double>();
+      }
+    }
+    else
+    {
+      vec[0] = val.As<double>();
+    }
+  }
 }
 
 void ExpressionContext::ConfigureExpression()
 {
   for (auto& entry : m_proc_vars)
   {
-    m_symbol_table.add_variable(entry.first, entry.second);
+    m_symbol_table.add_vector(entry.first, entry.second);
   }
 
   m_expression.register_symbol_table(m_symbol_table);
 
+  m_parser.dec().collect_assignments() = true;
   m_parser.compile(m_in_expression, m_expression);
+  m_parser.dec().assignment_symbols(m_symbol_list);
 }
 
-sup::dto::AnyValue ExpressionContext::EvaluateExpression()
+ProcessVariableMap ExpressionContext::EvaluateExpression()
 {
-
   ConfigureExpression();
 
-  sup::dto::AnyValue output(m_expression.value());
+  m_expression.value();
+
+  ProcessVariableMap output;
+  if (m_symbol_list.size() == 0)
+  {
+    output.emplace("FAILURE", std::vector<double>{std::nan("")});
+  }
+  else
+  {
+    for (auto assignment : m_symbol_list)
+    {
+      output.insert(std::make_pair(assignment.first, m_proc_vars.at(assignment.first)));
+    }
+  }
   return output;
 }
 

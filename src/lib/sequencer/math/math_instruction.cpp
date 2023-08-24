@@ -21,26 +21,7 @@
 
 #include "math_instruction.h"
 
-#include "sequencer/math/expressioncontext.h"
-#include "sup/sequencer/execution_status.h"
-#include "sup/sequencer/workspace.h"
-
-#include <sup/dto/anytype.h>
-#include <sup/dto/anyvalue.h>
-#include <sup/dto/basic_scalar_types.h>
-#include <sup/sequencer/constants.h>
-#include <sup/sequencer/exceptions.h>
-#include <sup/sequencer/instruction_registry.h>
-#include <sup/sequencer/instruction_utils.h>
-#include <sup/sequencer/generic_utils.h>
-
-#include <sup/dto/anyvalue_helper.h>
-#include <iostream>
-#include <string>
-#include <vector>
-
 const std::string EXPR_STRING_ATTR_NAME = "expression";
-const std::string OUT_STRING_ATTR_NAME = "outVar";
 
 namespace sup
 {
@@ -48,15 +29,11 @@ namespace sequencer
 {
 
 const std::string Math::Type = "Math";
-static bool _wait_for_condition_initialised_flag =
-  RegisterGlobalInstruction<Math>();
+static bool _wait_for_condition_initialised_flag = RegisterGlobalInstruction<Math>();
 
-
-Math::Math()
-  : Instruction(Math::Type)
+Math::Math() : Instruction(Math::Type)
 {
   AddAttributeDefinition(EXPR_STRING_ATTR_NAME, sup::dto::StringType).SetMandatory();
-  AddAttributeDefinition(OUT_STRING_ATTR_NAME, sup::dto::StringType).SetMandatory();
 }
 
 Math::~Math() = default;
@@ -66,43 +43,94 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
   auto expression = GetAttributeValue<std::string>(EXPR_STRING_ATTR_NAME);
   sup::math::ExpressionContext expr_ctx(expression);
 
-
-  sup::dto::AnyValue value;
+  sup::dto::AnyValue in_value;
+  bool read_type = true;
+  sup::dto::AnyType in_value_type;
   for (auto variable : expr_ctx)
   {
     std::string var_name = variable.first;
+
     // read the variable from the workspace
-    if (!ws.HasVariable(var_name) || !ws.GetValue(var_name, value))
+    if (!ws.HasVariable(var_name) || !ws.GetValue(var_name, in_value))
     {
       return ExecutionStatus::FAILURE;
     }
+
+    if (read_type)
+    {
+      in_value_type = in_value.GetType();
+      read_type = false;
+    }
+    else
+    {
+      if (in_value_type != in_value.GetType())
+      {
+        std::string error_message =
+            InstructionErrorProlog(*this) + "The expression variables cannot have different types.";
+        ui.LogError(error_message);
+        return ExecutionStatus::FAILURE;
+      }
+    }
+
     // Only numeric and array types are accepted
-    if (value.GetTypeCode() == dto::TypeCode::Char8 ||
-        value.GetTypeCode() == dto::TypeCode::String ||
-        value.GetTypeCode() == dto::TypeCode::Struct)
+    if (in_value_type.GetTypeCode() == dto::TypeCode::Empty
+        || in_value_type.GetTypeCode() == dto::TypeCode::Bool
+        || in_value_type.GetTypeCode() == dto::TypeCode::Char8
+        || in_value_type.GetTypeCode() == dto::TypeCode::String
+        || in_value_type.GetTypeCode() == dto::TypeCode::Struct)
     {
+      std::string error_message =
+          InstructionErrorProlog(*this) + "Only arrays and numeric types are accepted.";
+      ui.LogError(error_message);
       return ExecutionStatus::FAILURE;
     }
-    expr_ctx.ConvertVariable(var_name, value);
+    expr_ctx.ConvertVariable(var_name, in_value);
   }
 
-  sup::dto::AnyType in_type(value.GetType());
-  sup::dto::AnyValue return_value(in_type);
-  sup::dto::AnyValue output;
-  output = expr_ctx.EvaluateExpression();
+  sup::dto::AnyValue return_value(in_value_type);
 
-  // convert the output value to the same type as the input
-  if (!sup::dto::TryConvert(return_value, output))
+  math::ProcessVariableMap output = expr_ctx.EvaluateExpression();
+
+  try
   {
+    output.at("FAILURE");
+    std::string error_message = InstructionErrorProlog(*this)
+                                + "An assignment variable needs to be defined in the expression.";
+    ui.LogError(error_message);
     return ExecutionStatus::FAILURE;
   }
-
-  auto result = GetAttributeValue<std::string>(OUT_STRING_ATTR_NAME);
-
-  if (!ws.HasVariable(result) || !ws.SetValue(result, return_value))
+  catch (const std::out_of_range& e)
   {
-    return ExecutionStatus::FAILURE;
+    for (auto vec : output)
+    {
+      dto::AnyValue temp;
+      if (sup::dto::IsArrayValue(return_value))
+      {
+        for (size_t i = 0; i < return_value.NumberOfElements(); i++)
+        {
+          temp = vec.second[i];
+          if (!sup::dto::TryConvert(return_value[i], temp))
+          {
+            return ExecutionStatus::FAILURE;
+          }
+        }
+      }
+      else
+      {
+        temp = vec.second[0];
+        if (!sup::dto::TryConvert(return_value, temp))
+        {
+          return ExecutionStatus::FAILURE;
+        }
+      }
+
+      if (!ws.HasVariable(vec.first) || !ws.SetValue(vec.first, return_value))
+      {
+        return ExecutionStatus::FAILURE;
+      }
+    }
   }
+
   return ExecutionStatus::SUCCESS;
 }
 

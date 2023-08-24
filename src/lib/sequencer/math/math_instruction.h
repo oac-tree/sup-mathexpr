@@ -22,13 +22,18 @@
 #ifndef SUP_SEQUENCER_MATH_H_
 #define SUP_SEQUENCER_MATH_H_
 
-#include <sup/sequencer/instruction.h>
+#include "sequencer/math/expressioncontext.h"
+#include "sup/sequencer/execution_status.h"
+#include "sup/sequencer/workspace.h"
 
-/* #include "sup/sequencer/exprtk/exprtk.hpp" */
-
+#include <sup/dto/anytype.h>
+#include <sup/dto/anyvalue.h>
+#include <sup/dto/anyvalue_helper.h>
 #include <sup/dto/basic_scalar_types.h>
-
-#include <condition_variable>
+#include <sup/sequencer/generic_utils.h>
+#include <sup/sequencer/instruction.h>
+#include <sup/sequencer/instruction_registry.h>
+#include <sup/sequencer/user_interface.h>
 
 namespace sup
 {
@@ -49,9 +54,7 @@ public:
   static const std::string Type;
 
 private:
-
   ExecutionStatus ExecuteSingleImpl(UserInterface& ui, Workspace& ws) override;
-
 };
 
 }  // namespace sequencer

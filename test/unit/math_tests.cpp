@@ -36,70 +36,18 @@ protected:
   virtual ~MathTest() = default;
 };
 
-// TEST_F(MathTest, Success)
-// {
-//   const std::string body{R"(
-//     <ParallelSequence>
-//         <WaitForCondition varNames="live" timeout="1.0">
-//             <Equals lhs="live" rhs="one"/>
-//         </WaitForCondition>
-//         <Sequence>
-//             <Wait timeout="0.1"/>
-//             <Copy input="one" output="live"/>
-//         </Sequence>
-//     </ParallelSequence>
-//     <Workspace>
-//         <Local name="live" type='{"type":"uint64"}' value='0' />
-//         <Local name="one" type='{"type":"uint64"}' value='1' />
-//     </Workspace>
-// )"};
-
-//   test::NullUserInterface ui;
-//   auto proc = ParseProcedureString(test::CreateProcedureString(body));
-//   EXPECT_TRUE(test::TryAndExecute(proc, ui));
-// }
-
-// TEST_F(MathTest, Setup)
-// {
-//   {
-//     // No child
-//     const std::string body{R"(
-//       <WaitForCondition varNames="live" timeout="0.1"/>
-//       <Workspace>
-//           <Local name="live" type='{"type":"uint64"}' value='0' />
-//       </Workspace>)"};
-
-//     auto proc = ParseProcedureString(test::CreateProcedureString(body));
-//     EXPECT_THROW(proc->Setup(), InstructionSetupException);
-//   }
-//   {
-//     // Missing attributes
-//     auto instr = GlobalInstructionRegistry().Create("WaitForCondition");
-//     auto wait = GlobalInstructionRegistry().Create("Wait");
-//     ASSERT_TRUE(instr);
-//     ASSERT_TRUE(wait);
-//     ASSERT_TRUE(instr->InsertInstruction(std::move(wait), 0));
-//     Procedure proc;
-//     EXPECT_THROW(instr->Setup(proc), InstructionSetupException);
-//     EXPECT_TRUE(instr->AddAttribute("timeout", "1.0"));
-//     EXPECT_THROW(instr->Setup(proc), InstructionSetupException);
-//     EXPECT_TRUE(instr->AddAttribute("varNames", "does_not_matter"));
-//     EXPECT_NO_THROW(instr->Setup(proc));
-//   }
-// }
-
 TEST_F(MathTest, Success)
 {
   const std::string body{
     R"(
     <Sequence>
-        <Math expression="x+y*y-2" outVar="z" />
+        <Math expression="z:=x+y*y-2"/>
         <Equals lhs="z" rhs="a"/>
     </Sequence>
     <Workspace>
         <Local name="x" type='{"type":"uint64"}' value='5' />
         <Local name="y" type='{"type":"uint64"}' value='3' />
-        <Local name="z" />
+        <Local name="z" type='{"type":"uint64"}' value='0'/>
         <Local name="a" type='{"type":"uint64"}' value='12' />
     </Workspace>
 )"};
@@ -114,17 +62,57 @@ TEST_F(MathTest, TypeFailure)
   const std::string body{
     R"(
     <Sequence>
-        <Math expression="x+y-3" outVar="z" />
+        <Math expression="z:=x+y-3"/>
     </Sequence>
     <Workspace>
         <Local name="x" type='{"type":"uint8"}' value='1' />
         <Local name="y" type='{"type":"uint8"}' value='1' />
-        <Local name="z" />
+        <Local name="z" type='{"type":"uint8"}' value='0' />
     </Workspace>
 )"};
 
   test::NullUserInterface ui;
   auto proc = ParseProcedureString(test::CreateProcedureString(body));
   EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::FAILURE));
+}
+
+TEST_F(MathTest, OutputFailure)
+{
+  const std::string body{
+    R"(
+    <Sequence>
+        <Math expression="x+y-3"/>
+    </Sequence>
+    <Workspace>
+        <Local name="x" type='{"type":"int8"}' value='1' />
+        <Local name="y" type='{"type":"int8"}' value='1' />
+        <Local name="z" type='{"type":"int8"}' value='0' />
+    </Workspace>
+)"};
+
+  test::NullUserInterface ui;
+  auto proc = ParseProcedureString(test::CreateProcedureString(body));
+  EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::FAILURE));
+}
+
+TEST_F(MathTest, SuccessArray)
+{
+  const std::string body{
+    R"(
+    <Sequence>
+        <Math expression="z:=x+y*y-2"/>
+        <Equals lhs="z" rhs="a"/>
+    </Sequence>
+    <Workspace>
+        <Local name="x" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[2,4,6]"/>
+        <Local name="y" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[1,1,1]"/>
+        <Local name="z" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[0,0,0]"/>
+        <Local name="a" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[1,3,5]"/>
+    </Workspace>
+)"};
+
+  test::NullUserInterface ui;
+  auto proc = ParseProcedureString(test::CreateProcedureString(body));
+  EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
 }
 

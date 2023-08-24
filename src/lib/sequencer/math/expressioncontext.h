@@ -22,11 +22,7 @@
 #ifndef SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 #define SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 
-#include "../exprtk/exprtk.hpp"
-
-#include <string>
-#include <vector>
-#include <map>
+#include "sequencer/exprtk/exprtk.hpp"
 
 #include <sup/dto/anyvalue.h>
 
@@ -39,7 +35,7 @@ namespace math
  * @brief Processes Anyvalue variables for mathmatical expression evaluation
  *
  */
-using ProcessVariableMap = std::map<const std::string, double>;
+using ProcessVariableMap = std::map<const std::string, std::vector<double>>;
 
 class ExpressionContext
 {
@@ -52,7 +48,7 @@ public:
 
   void ConvertVariable(const std::string& var, dto::AnyValue& val);
 
-  sup::dto::AnyValue EvaluateExpression();
+  ProcessVariableMap EvaluateExpression();
 
 private:
   void ConfigureExpression();
@@ -64,11 +60,11 @@ private:
   exprtk::symbol_table<double> m_symbol_table;
   exprtk::expression<double> m_expression;
   exprtk::parser<double> m_parser;
-
+  std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> m_symbol_list;
 };
 
 }  // namespace math
 
 }  // namespace sup
 
-#endif // SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
+#endif  // SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
