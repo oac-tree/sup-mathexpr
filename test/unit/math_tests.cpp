@@ -6,7 +6,7 @@
 *
 * Description   : SUP sequencer control plugin
 *
-* Author        : Walter Van Herck (IO)
+* Author        : Ricardo Torres (Ext)
 *
 * Copyright (c) : 2010-2023 ITER Organization,
 *                 CS 90 046
@@ -116,3 +116,41 @@ TEST_F(MathTest, SuccessArray)
   EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
 }
 
+TEST_F(MathTest, Increment)
+{
+  const std::string body{
+    R"(
+    <Sequence>
+        <Math expression="x+=1"/>
+        <Equals lhs="x" rhs="y"/>
+    </Sequence>
+    <Workspace>
+        <Local name="x" type='{"type":"int8"}' value='1'/>
+        <Local name="y" type='{"type":"int8"}' value='2'/>
+    </Workspace>
+)"};
+
+  test::NullUserInterface ui;
+  auto proc = ParseProcedureString(test::CreateProcedureString(body));
+  EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
+}
+
+TEST_F(MathTest, trig_identity)
+{
+  const std::string body{
+    R"(
+    <Sequence>
+        <Math expression='z:=sin(x)^2+cos(x)^2'/>
+        <Equals lhs="z" rhs="y"/>
+    </Sequence>
+    <Workspace>
+        <Local name="x" type='{"type":"float32"}' value='158'/>
+        <Local name="y" type='{"type":"float32"}' value='1'/>
+        <Local name="z" type='{"type":"float32"}' value='0'/>
+    </Workspace>
+)"};
+
+  test::NullUserInterface ui;
+  auto proc = ParseProcedureString(test::CreateProcedureString(body));
+  EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
+}
