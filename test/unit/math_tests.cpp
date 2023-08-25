@@ -19,8 +19,8 @@
 * of the distribution package.
 ******************************************************************************/
 
-#include "test_user_interface.h"
-#include "unit_test_helper.h"
+#include <test_user_interface.h>
+#include <unit_test_helper.h>
 
 #include <sup/sequencer/instruction_registry.h>
 #include <sup/sequencer/sequence_parser.h>

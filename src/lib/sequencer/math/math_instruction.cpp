@@ -21,6 +21,18 @@
 
 #include "math_instruction.h"
 
+#include <sup/dto/anytype.h>
+#include <sup/dto/anyvalue.h>
+#include <sup/dto/anyvalue_helper.h>
+#include <sup/dto/basic_scalar_types.h>
+#include <sup/sequencer/generic_utils.h>
+#include <sup/sequencer/workspace.h>
+#include <sup/sequencer/instruction_registry.h>
+#include <sup/sequencer/user_interface.h>
+#include <sequencer/math/expressioncontext.h>
+
+#include <string>
+
 const std::string EXPR_STRING_ATTR_NAME = "expression";
 
 namespace sup

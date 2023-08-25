@@ -22,9 +22,14 @@
 #ifndef SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 #define SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 
-#include "sequencer/exprtk/exprtk.hpp"
+#include <sequencer/exprtk/exprtk.hpp>
 
 #include <sup/dto/anyvalue.h>
+
+#include <vector>
+#include <deque>
+#include <map>
+#include <string>
 
 namespace sup
 {
