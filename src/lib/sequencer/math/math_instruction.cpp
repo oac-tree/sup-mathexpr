@@ -21,15 +21,15 @@
 
 #include "math_instruction.h"
 
+#include <sequencer/math/expressioncontext.h>
 #include <sup/dto/anytype.h>
 #include <sup/dto/anyvalue.h>
 #include <sup/dto/anyvalue_helper.h>
 #include <sup/dto/basic_scalar_types.h>
 #include <sup/sequencer/generic_utils.h>
-#include <sup/sequencer/workspace.h>
 #include <sup/sequencer/instruction_registry.h>
 #include <sup/sequencer/user_interface.h>
-#include <sequencer/math/expressioncontext.h>
+#include <sup/sequencer/workspace.h>
 
 #include <string>
 
@@ -85,11 +85,11 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
     }
 
     // Only numeric and array types are accepted
-    if (in_value_type.GetTypeCode() == dto::TypeCode::Empty
-        || in_value_type.GetTypeCode() == dto::TypeCode::Bool
-        || in_value_type.GetTypeCode() == dto::TypeCode::Char8
-        || in_value_type.GetTypeCode() == dto::TypeCode::String
-        || in_value_type.GetTypeCode() == dto::TypeCode::Struct)
+    if (in_value_type.GetTypeCode() == sup::dto::TypeCode::Empty
+        || in_value_type.GetTypeCode() == sup::dto::TypeCode::Bool
+        || in_value_type.GetTypeCode() == sup::dto::TypeCode::Char8
+        || in_value_type.GetTypeCode() == sup::dto::TypeCode::String
+        || in_value_type.GetTypeCode() == sup::dto::TypeCode::Struct)
     {
       std::string error_message =
           InstructionErrorProlog(*this) + "Only arrays and numeric types are accepted.";
@@ -103,7 +103,7 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
 
   math::ProcessVariableMap output = expr_ctx.EvaluateExpression();
 
-  try
+  if (output.count("FAILURE") > 0)
   {
     output.at("FAILURE");
     std::string error_message = InstructionErrorProlog(*this)
@@ -111,35 +111,33 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
     ui.LogError(error_message);
     return ExecutionStatus::FAILURE;
   }
-  catch (const std::out_of_range& e)
+
+  for (auto vec : output)
   {
-    for (auto vec : output)
+    sup::dto::AnyValue temp;
+    if (sup::dto::IsArrayValue(return_value))
     {
-      dto::AnyValue temp;
-      if (sup::dto::IsArrayValue(return_value))
+      for (size_t i = 0; i < return_value.NumberOfElements(); ++i)
       {
-        for (size_t i = 0; i < return_value.NumberOfElements(); i++)
-        {
-          temp = vec.second[i];
-          if (!sup::dto::TryConvert(return_value[i], temp))
-          {
-            return ExecutionStatus::FAILURE;
-          }
-        }
-      }
-      else
-      {
-        temp = vec.second[0];
-        if (!sup::dto::TryConvert(return_value, temp))
+        temp = vec.second[i];
+        if (!sup::dto::TryConvert(return_value[i], temp))
         {
           return ExecutionStatus::FAILURE;
         }
       }
-
-      if (!ws.HasVariable(vec.first) || !ws.SetValue(vec.first, return_value))
+    }
+    else
+    {
+      temp = vec.second[0];
+      if (!sup::dto::TryConvert(return_value, temp))
       {
         return ExecutionStatus::FAILURE;
       }
+    }
+
+    if (!ws.HasVariable(vec.first) || !ws.SetValue(vec.first, return_value))
+    {
+      return ExecutionStatus::FAILURE;
     }
   }
 
