@@ -99,7 +99,7 @@ ProcessVariableMap ExpressionContext::EvaluateExpression()
   {
     for (auto assignment : m_symbol_list)
     {
-      output.insert(std::make_pair(assignment.first, m_proc_vars.at(assignment.first)));
+      output.emplace(assignment.first, m_proc_vars.at(assignment.first));
     }
   }
   return output;
