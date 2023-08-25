@@ -4,7 +4,7 @@
 *
 * Project       : Supervision and Automation - Sequencer
 *
-* Description   : SUP sequencer control plugin
+* Description   : SUP sequencer math plugin
 *
 * Author        : Ricardo Torres (Ext)
 *
@@ -147,6 +147,29 @@ TEST_F(MathTest, trig_identity)
         <Local name="x" type='{"type":"float32"}' value='158'/>
         <Local name="y" type='{"type":"float32"}' value='1'/>
         <Local name="z" type='{"type":"float32"}' value='0'/>
+    </Workspace>
+)"};
+
+  test::NullUserInterface ui;
+  auto proc = ParseProcedureString(test::CreateProcedureString(body));
+  EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
+}
+
+TEST_F(MathTest, double_assign)
+{
+  const std::string body{
+    R"(
+    <Sequence>
+        <Math expression="y:=x+1; z:=y+2"/>
+        <Equals lhs="y" rhs="a"/>
+        <Equals lhs="z" rhs="b"/>
+    </Sequence>
+    <Workspace>
+        <Local name="x" type='{"type":"float32"}' value='158'/>
+        <Local name="y" type='{"type":"float32"}' value='0'/>
+        <Local name="z" type='{"type":"float32"}' value='0'/>
+        <Local name="a" type='{"type":"float32"}' value='159'/>
+        <Local name="b" type='{"type":"float32"}' value='161'/>
     </Workspace>
 )"};
 
