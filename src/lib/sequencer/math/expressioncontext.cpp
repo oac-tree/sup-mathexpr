@@ -50,21 +50,22 @@ void ExpressionContext::ConvertVariable(const std::string& name, dto::AnyValue& 
 {
   // Check if the key exists in the map
 
-  if (m_proc_vars.count(name))
+  if (m_proc_vars.count(name)>0)
   {
     // If the key exists, get a reference to the vector associated with the key
     auto& vec = m_proc_vars.at(name);
-    // Check if the vector is not empty
+    // Verify if input is an array
     if (sup::dto::IsArrayValue(val))
     {
       vec.resize(val.NumberOfElements());
-      for (size_t i = 0; i < val.NumberOfElements(); i++)
+      for (size_t i = 0; i < val.NumberOfElements(); ++i)
       {
         vec[i] = val[i].As<double>();
       }
     }
     else
     {
+      vec.resize(1);
       vec[0] = val.As<double>();
     }
   }
