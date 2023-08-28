@@ -22,12 +22,9 @@
 #ifndef SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 #define SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 
-#include <sequencer/exprtk/exprtk.hpp>
-
 #include <sup/dto/anyvalue.h>
 
 #include <vector>
-#include <deque>
 #include <map>
 #include <string>
 
@@ -61,11 +58,6 @@ private:
   std::string m_in_expression;
   std::vector<std::string> m_list_vars;
   ProcessVariableMap m_proc_vars;
-
-  exprtk::symbol_table<double> m_symbol_table;
-  exprtk::expression<double> m_expression;
-  exprtk::parser<double> m_parser;
-  std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> m_symbol_list;
 };
 
 }  // namespace math

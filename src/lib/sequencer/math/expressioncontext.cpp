@@ -20,6 +20,8 @@
  ******************************************************************************/
 
 #include "expressioncontext.h"
+#include <sequencer/exprtk/exprtk.hpp>
+#include <deque>
 
 namespace sup
 {
@@ -50,7 +52,7 @@ void ExpressionContext::ConvertVariable(const std::string& name, dto::AnyValue& 
 {
   // Check if the key exists in the map
 
-  if (m_proc_vars.count(name)>0)
+  if (m_proc_vars.count(name) > 0)
   {
     // If the key exists, get a reference to the vector associated with the key
     auto& vec = m_proc_vars.at(name);
@@ -71,8 +73,13 @@ void ExpressionContext::ConvertVariable(const std::string& name, dto::AnyValue& 
   }
 }
 
-void ExpressionContext::ConfigureExpression()
+ProcessVariableMap ExpressionContext::EvaluateExpression()
 {
+  exprtk::symbol_table<double> m_symbol_table;
+  exprtk::expression<double> m_expression;
+  exprtk::parser<double> m_parser;
+  std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> m_symbol_list;
+
   for (auto& entry : m_proc_vars)
   {
     m_symbol_table.add_vector(entry.first, entry.second);
@@ -83,11 +90,6 @@ void ExpressionContext::ConfigureExpression()
   m_parser.dec().collect_assignments() = true;
   m_parser.compile(m_in_expression, m_expression);
   m_parser.dec().assignment_symbols(m_symbol_list);
-}
-
-ProcessVariableMap ExpressionContext::EvaluateExpression()
-{
-  ConfigureExpression();
 
   m_expression.value();
 
