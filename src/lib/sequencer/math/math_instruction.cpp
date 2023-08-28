@@ -41,7 +41,7 @@ namespace sequencer
 {
 
 const std::string Math::Type = "Math";
-static bool _wait_for_condition_initialised_flag = RegisterGlobalInstruction<Math>();
+static bool _math_initialised_flag = RegisterGlobalInstruction<Math>();
 
 Math::Math() : Instruction(Math::Type)
 {
