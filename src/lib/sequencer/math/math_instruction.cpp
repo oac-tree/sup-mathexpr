@@ -86,8 +86,6 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
 
     // Only numeric and array types are accepted
     if (in_value_type.GetTypeCode() == sup::dto::TypeCode::Empty
-        || in_value_type.GetTypeCode() == sup::dto::TypeCode::Bool
-        || in_value_type.GetTypeCode() == sup::dto::TypeCode::Char8
         || in_value_type.GetTypeCode() == sup::dto::TypeCode::String
         || in_value_type.GetTypeCode() == sup::dto::TypeCode::Struct)
     {
