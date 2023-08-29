@@ -56,7 +56,6 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
   sup::math::ExpressionContext expr_ctx(expression);
 
   sup::dto::AnyValue in_value;
-  bool read_type = true;
   sup::dto::AnyType in_value_type;
   for (auto variable : expr_ctx)
   {
@@ -68,21 +67,7 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
       return ExecutionStatus::FAILURE;
     }
 
-    if (read_type)
-    {
-      in_value_type = in_value.GetType();
-      read_type = false;
-    }
-    else
-    {
-      if (in_value_type != in_value.GetType())
-      {
-        std::string error_message =
-            InstructionErrorProlog(*this) + "The expression variables cannot have different types.";
-        ui.LogError(error_message);
-        return ExecutionStatus::FAILURE;
-      }
-    }
+    in_value_type = in_value.GetType();
 
     // Only numeric and array types are accepted
     if (in_value_type.GetTypeCode() == sup::dto::TypeCode::Empty
