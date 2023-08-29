@@ -177,3 +177,24 @@ TEST_F(MathTest, double_assign)
   auto proc = ParseProcedureString(test::CreateProcedureString(body));
   EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
 }
+
+TEST_F(MathTest, DISABLED_multi_const)
+{
+  const std::string body{
+    R"(
+    <Sequence>
+        <Math expression="z:=y*c+2"/>
+        <Equals lhs="z" rhs="a"/>
+    </Sequence>
+    <Workspace>
+        <Local name="y" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[1,1,1]"/>
+        <Local name="c" type='{"type":"float32"}' value='2'/>
+        <Local name="z" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[0,0,0]"/>
+        <Local name="a" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[4,4,4]"/>
+    </Workspace>
+)"};
+
+  test::NullUserInterface ui;
+  auto proc = ParseProcedureString(test::CreateProcedureString(body));
+  EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
+}
