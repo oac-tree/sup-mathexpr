@@ -12,6 +12,7 @@ set_target_properties(sequencer-math PROPERTIES
 target_sources(sequencer-math
     PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/math_instruction.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/variable_handler.cpp
         ${CMAKE_CURRENT_LIST_DIR}/expressioncontext.cpp
 )
 
@@ -23,3 +24,4 @@ target_include_directories(sequencer-math PUBLIC
 target_link_libraries(sequencer-math PUBLIC sequencer::sequencer)
 
 install(TARGETS sequencer-math DESTINATION ${PLUGIN_PATH})
+
