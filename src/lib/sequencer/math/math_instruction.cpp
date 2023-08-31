@@ -30,7 +30,9 @@
 #include <sup/sequencer/instruction_registry.h>
 #include <sup/sequencer/user_interface.h>
 #include <sup/sequencer/workspace.h>
+#include "variable_handler.h"
 
+#include <iostream>
 #include <string>
 
 const std::string EXPR_STRING_ATTR_NAME = "expression";
@@ -53,36 +55,12 @@ Math::~Math() = default;
 ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
 {
   auto expression = GetAttributeValue<std::string>(EXPR_STRING_ATTR_NAME);
+
   sup::math::ExpressionContext expr_ctx(expression);
 
-  sup::dto::AnyValue in_value;
-  sup::dto::AnyType in_value_type;
-  for (auto variable : expr_ctx)
-  {
-    std::string var_name = variable.first;
+  math::VariableHandler handler(&ws, expr_ctx.GetVariableList());
 
-    // read the variable from the workspace
-    if (!ws.HasVariable(var_name) || !ws.GetValue(var_name, in_value))
-    {
-      return ExecutionStatus::FAILURE;
-    }
-
-    in_value_type = in_value.GetType();
-
-    // Only numeric and array types are accepted
-    if (in_value_type.GetTypeCode() == sup::dto::TypeCode::Empty
-        || in_value_type.GetTypeCode() == sup::dto::TypeCode::String
-        || in_value_type.GetTypeCode() == sup::dto::TypeCode::Struct)
-    {
-      std::string error_message =
-          InstructionErrorProlog(*this) + "Only arrays and numeric types are accepted.";
-      ui.LogError(error_message);
-      return ExecutionStatus::FAILURE;
-    }
-    expr_ctx.ConvertVariable(var_name, in_value);
-  }
-
-  sup::dto::AnyValue return_value(in_value_type);
+  expr_ctx.SetVariableHandler(&handler);
 
   math::ProcessVariableMap output = expr_ctx.EvaluateExpression();
 
@@ -95,35 +73,13 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
     return ExecutionStatus::FAILURE;
   }
 
-  for (auto vec : output)
+  for (auto assignment : output)
   {
-    sup::dto::AnyValue temp;
-    if (sup::dto::IsArrayValue(return_value))
-    {
-      for (size_t i = 0; i < return_value.NumberOfElements(); ++i)
-      {
-        temp = vec.second[i];
-        if (!sup::dto::TryConvert(return_value[i], temp))
-        {
-          return ExecutionStatus::FAILURE;
-        }
-      }
-    }
-    else
-    {
-      temp = vec.second[0];
-      if (!sup::dto::TryConvert(return_value, temp))
-      {
-        return ExecutionStatus::FAILURE;
-      }
-    }
-
-    if (!ws.HasVariable(vec.first) || !ws.SetValue(vec.first, return_value))
+    if (!ws.HasVariable(assignment.first) || !ws.SetValue(assignment.first, assignment.second))
     {
       return ExecutionStatus::FAILURE;
     }
   }
-
   return ExecutionStatus::SUCCESS;
 }
 
