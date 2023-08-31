@@ -144,9 +144,9 @@ TEST_F(MathTest, trig_identity)
         <Equals lhs="z" rhs="y"/>
     </Sequence>
     <Workspace>
-        <Local name="x" type='{"type":"float32"}' value='158'/>
-        <Local name="y" type='{"type":"float32"}' value='1'/>
-        <Local name="z" type='{"type":"float32"}' value='0'/>
+        <Local name="x" type='{"type":"float64"}' value='158'/>
+        <Local name="y" type='{"type":"float64"}' value='1'/>
+        <Local name="z" type='{"type":"float64"}' value='0'/>
     </Workspace>
 )"};
 
@@ -178,7 +178,7 @@ TEST_F(MathTest, double_assign)
   EXPECT_TRUE(test::TryAndExecute(proc, ui, ExecutionStatus::SUCCESS));
 }
 
-TEST_F(MathTest, DISABLED_multi_const)
+TEST_F(MathTest, multi_const)
 {
   const std::string body{
     R"(
@@ -188,7 +188,7 @@ TEST_F(MathTest, DISABLED_multi_const)
     </Sequence>
     <Workspace>
         <Local name="y" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[1,1,1]"/>
-        <Local name="c" type='{"type":"float32"}' value='2'/>
+        <Local name="c" type='{"type":"uint32"}' value='2'/>
         <Local name="z" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[0,0,0]"/>
         <Local name="a" type='{"type":"uint32_arr","element":{"type":"uint32"}}' value="[4,4,4]"/>
     </Workspace>
