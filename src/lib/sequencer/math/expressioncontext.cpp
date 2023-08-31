@@ -20,57 +20,94 @@
  ******************************************************************************/
 
 #include "expressioncontext.h"
+
+#include "sequencer/math/ivariablestore.h"
+#include "sequencer/math/variable_handler.h"
+
 #include <sequencer/exprtk/exprtk.hpp>
+#include <sup/dto/anytype.h>
+#include <sup/dto/anyvalue.h>
+
+#include <cmath>
 #include <deque>
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
 
 namespace sup
 {
 namespace math
 {
 
-ExpressionContext::ExpressionContext(const std::string& expression) : m_in_expression(expression)
+ExpressionContext::ExpressionContext(const std::string& expression) : m_raw_expression(expression)
 {
-  exprtk::collect_variables(m_in_expression, m_list_vars);
+  exprtk::collect_variables(m_raw_expression, m_list_vars);
 
   for (const auto& name : m_list_vars)
   {
-    m_proc_vars.emplace(name, std::vector<double>{std::nan("")});
+    m_data.emplace(name, dto::AnyValue(dto::EmptyType));
   }
 }
 
-ProcessVariableMap::iterator ExpressionContext::begin()
+void ExpressionContext::SetVariableHandler(IVariableStore* var_handler)
 {
-  return m_proc_vars.begin();
+  m_variable_handler = var_handler;
 }
 
-ProcessVariableMap::iterator ExpressionContext::end()
+ProcessVariableMap* ExpressionContext::GetVariableList()
 {
-  return m_proc_vars.end();
+  return &m_data;
 }
 
-void ExpressionContext::ConvertVariable(const std::string& name, dto::AnyValue& val)
+bool ExpressionContext::ReadVariables()
 {
-  // Check if the key exists in the map
-
-  if (m_proc_vars.count(name) > 0)
+  for (auto& entry : m_list_vars)
   {
-    // If the key exists, get a reference to the vector associated with the key
-    auto& vec = m_proc_vars.at(name);
-    // Verify if input is an array
-    if (sup::dto::IsArrayValue(val))
+    m_process_data.emplace(entry,std::vector<double>{std::nan("")});
+    switch (m_variable_handler->GetVariableType(entry))
     {
-      vec.resize(val.NumberOfElements());
-      for (size_t i = 0; i < val.NumberOfElements(); ++i)
+    case IVariableStore::VarType::kScalar:
+      if (!m_variable_handler->GetScalar(entry, m_process_data.at(entry)[0]))
       {
-        vec[i] = val[i].As<double>();
+        return false;
       }
-    }
-    else
-    {
-      vec.resize(1);
-      vec[0] = val.As<double>();
+      break;
+    case IVariableStore::kVector:
+      if (!m_variable_handler->GetVector(entry, m_process_data.at(entry)))
+      {
+        return false;
+      }
+      break;
+    case IVariableStore::kUnknown:
+      return false;
+      break;
     }
   }
+  return true;
+}
+
+bool ExpressionContext::WriteVariable(std::string varname)
+{
+  switch (m_variable_handler->GetVariableType(varname))
+  {
+  case IVariableStore::VarType::kScalar:
+    if (!m_variable_handler->SetScalar(varname, m_process_data.at(varname)[0]))
+    {
+      return false;
+    }
+    break;
+  case IVariableStore::kVector:
+    if (!m_variable_handler->SetVector(varname, m_process_data.at(varname)))
+    {
+      return false;
+    }
+    break;
+  case IVariableStore::kUnknown:
+    return false;
+    break;
+  }
+  return true;
 }
 
 ProcessVariableMap ExpressionContext::EvaluateExpression()
@@ -80,15 +117,27 @@ ProcessVariableMap ExpressionContext::EvaluateExpression()
   exprtk::parser<double> m_parser;
   std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> m_symbol_list;
 
-  for (auto& entry : m_proc_vars)
+  this->ReadVariables();
+
+  for (auto& varname : m_list_vars)
   {
-    m_symbol_table.add_vector(entry.first, entry.second);
+    switch (m_variable_handler->GetVariableType(varname))
+    {
+    case IVariableStore::VarType::kScalar:
+      m_symbol_table.add_variable(varname, m_process_data.at(varname)[0]);
+      break;
+    case IVariableStore::kVector:
+      m_symbol_table.add_vector(varname, m_process_data.at(varname));
+      break;
+    case IVariableStore::kUnknown:
+      break;
+    }
   }
 
   m_expression.register_symbol_table(m_symbol_table);
 
   m_parser.dec().collect_assignments() = true;
-  m_parser.compile(m_in_expression, m_expression);
+  m_parser.compile(m_raw_expression, m_expression);
   m_parser.dec().assignment_symbols(m_symbol_list);
 
   m_expression.value();
@@ -96,13 +145,21 @@ ProcessVariableMap ExpressionContext::EvaluateExpression()
   ProcessVariableMap output;
   if (m_symbol_list.size() == 0)
   {
-    output.emplace("FAILURE", std::vector<double>{std::nan("")});
+    output.emplace("FAILURE", sup::dto::AnyValue(sup::dto::EmptyType));
   }
   else
   {
     for (auto assignment : m_symbol_list)
     {
-      output.emplace(assignment.first, m_proc_vars.at(assignment.first));
+      auto varname = assignment.first;
+      if (this->WriteVariable(varname))
+      {
+        output.emplace(varname, m_data.at(varname));
+      }
+      else
+      {
+        output.emplace("FAILURE", sup::dto::AnyValue(sup::dto::EmptyType));
+      }
     }
   }
   return output;

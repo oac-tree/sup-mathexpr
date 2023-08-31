@@ -23,6 +23,9 @@
 #define SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
 
 #include <sup/dto/anyvalue.h>
+#include "ivariablestore.h"
+
+#include <sequencer/exprtk/exprtk.hpp>
 
 #include <vector>
 #include <map>
@@ -34,30 +37,33 @@ namespace math
 {
 
 /**
- * @brief Processes Anyvalue variables for mathmatical expression evaluation
+ * @brief Processes Anyvalue variables for mathematical expression evaluation
  *
  */
-using ProcessVariableMap = std::map<const std::string, std::vector<double>>;
+
+using ProcessVariableMap = std::map<const std::string, sup::dto::AnyValue>;
 
 class ExpressionContext
 {
 public:
   ExpressionContext(const std::string& expression);
+  // ExpressionContext(const std::string& expression);
 
-  ProcessVariableMap::iterator begin();
+  ProcessVariableMap* GetVariableList();
 
-  ProcessVariableMap::iterator end();
-
-  void ConvertVariable(const std::string& var, dto::AnyValue& val);
+  void SetVariableHandler(IVariableStore* var_handler);
 
   ProcessVariableMap EvaluateExpression();
 
 private:
-  void ConfigureExpression();
+  bool ReadVariables();
+  bool WriteVariable(std::string varname);
 
-  std::string m_in_expression;
+  std::string m_raw_expression;
+  ProcessVariableMap m_data;
+  IVariableStore* m_variable_handler;
   std::vector<std::string> m_list_vars;
-  ProcessVariableMap m_proc_vars;
+  std::map<std::string, std::vector<double>> m_process_data;
 };
 
 }  // namespace math
