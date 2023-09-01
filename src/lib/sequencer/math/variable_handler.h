@@ -37,12 +37,10 @@ namespace sup
 namespace math
 {
 
-using ProcessVariableMap = std::map<const std::string, sup::dto::AnyValue>;
-  
 class VariableHandler : public IVariableStore
 {
 public:
-  VariableHandler(sequencer::Workspace* ws, ProcessVariableMap* vars);
+  VariableHandler(sequencer::Workspace* ws);
   ~VariableHandler() override = default;
   VarType GetVariableType(const std::string& varname) const override;
   bool GetScalar(const std::string& varname, double& val) const override;
@@ -51,9 +49,7 @@ public:
   bool SetVector(const std::string& varname, const std::vector<double>& val) override;
 
 private:
-  bool GetWorkspaceValue(sequencer::Workspace* ws, std::string varname);
-
-  ProcessVariableMap* m_data;
+  sequencer::Workspace* m_ws;
 };
 
 }  // namespace math

@@ -28,106 +28,97 @@
 #include <sup/dto/anytype.h>
 #include <sup/dto/anyvalue.h>
 
-#include <cmath>
 #include <deque>
-#include <iostream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
+#include <exception>
 
 namespace sup
 {
 namespace math
 {
 
-ExpressionContext::ExpressionContext(const std::string& expression) : m_raw_expression(expression)
+ExpressionContext::ExpressionContext(const std::string& expression, IVariableStore* varhandler)
+    : m_raw_expression(expression), m_variable_handler(varhandler)
 {
-  exprtk::collect_variables(m_raw_expression, m_list_vars);
+  std::vector<std::string> list_vars;
+  exprtk::collect_variables(m_raw_expression, list_vars);
 
-  for (const auto& name : m_list_vars)
+  if (!this->GetVariables(list_vars))
   {
-    m_data.emplace(name, dto::AnyValue(dto::EmptyType));
+    throw std::invalid_argument("Invalid variable list.");
   }
 }
 
-void ExpressionContext::SetVariableHandler(IVariableStore* var_handler)
+bool ExpressionContext::GetVariables(std::vector<std::string> list_vars)
 {
-  m_variable_handler = var_handler;
-}
-
-ProcessVariableMap* ExpressionContext::GetVariableList()
-{
-  return &m_data;
-}
-
-bool ExpressionContext::ReadVariables()
-{
-  for (auto& entry : m_list_vars)
+  std::vector<double> readvector;
+  for (const auto& varname : list_vars)
   {
-    m_process_data.emplace(entry,std::vector<double>{std::nan("")});
-    switch (m_variable_handler->GetVariableType(entry))
+    switch (m_variable_handler->GetVariableType(varname))
     {
-    case IVariableStore::VarType::kScalar:
-      if (!m_variable_handler->GetScalar(entry, m_process_data.at(entry)[0]))
+    case IVariableStore::kScalar:
+      readvector.resize(1);
+      if (!m_variable_handler->GetScalar(varname, readvector[0]))
       {
         return false;
       }
       break;
     case IVariableStore::kVector:
-      if (!m_variable_handler->GetVector(entry, m_process_data.at(entry)))
+      if (!m_variable_handler->GetVector(varname, readvector))
       {
         return false;
       }
       break;
     case IVariableStore::kUnknown:
       return false;
-      break;
     }
+    m_data.emplace(varname, readvector);
   }
   return true;
 }
 
-bool ExpressionContext::WriteVariable(std::string varname)
+bool ExpressionContext::SetVariable(std::string varname)
 {
   switch (m_variable_handler->GetVariableType(varname))
   {
-  case IVariableStore::VarType::kScalar:
-    if (!m_variable_handler->SetScalar(varname, m_process_data.at(varname)[0]))
+  case IVariableStore::kScalar:
+    if (!m_variable_handler->SetScalar(varname, m_data.at(varname)[0]))
     {
       return false;
     }
     break;
   case IVariableStore::kVector:
-    if (!m_variable_handler->SetVector(varname, m_process_data.at(varname)))
+    if (!m_variable_handler->SetVector(varname, m_data.at(varname)))
     {
       return false;
     }
     break;
   case IVariableStore::kUnknown:
     return false;
-    break;
   }
   return true;
 }
 
-ProcessVariableMap ExpressionContext::EvaluateExpression()
+bool ExpressionContext::EvaluateExpression()
 {
   exprtk::symbol_table<double> m_symbol_table;
   exprtk::expression<double> m_expression;
   exprtk::parser<double> m_parser;
   std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> m_symbol_list;
 
-  this->ReadVariables();
-
-  for (auto& varname : m_list_vars)
+  for (auto& var : m_data)
   {
+    auto varname = var.first;
     switch (m_variable_handler->GetVariableType(varname))
     {
-    case IVariableStore::VarType::kScalar:
-      m_symbol_table.add_variable(varname, m_process_data.at(varname)[0]);
+    case IVariableStore::kScalar:
+      m_symbol_table.add_variable(varname, var.second[0]);
       break;
     case IVariableStore::kVector:
-      m_symbol_table.add_vector(varname, m_process_data.at(varname));
+      m_symbol_table.add_vector(varname, var.second);
       break;
     case IVariableStore::kUnknown:
       break;
@@ -142,27 +133,18 @@ ProcessVariableMap ExpressionContext::EvaluateExpression()
 
   m_expression.value();
 
-  ProcessVariableMap output;
   if (m_symbol_list.size() == 0)
   {
-    output.emplace("FAILURE", sup::dto::AnyValue(sup::dto::EmptyType));
+    return false;
   }
-  else
+  for (auto assignment : m_symbol_list)
   {
-    for (auto assignment : m_symbol_list)
+    if (!this->SetVariable(assignment.first))
     {
-      auto varname = assignment.first;
-      if (this->WriteVariable(varname))
-      {
-        output.emplace(varname, m_data.at(varname));
-      }
-      else
-      {
-        output.emplace("FAILURE", sup::dto::AnyValue(sup::dto::EmptyType));
-      }
+      return false;
     }
   }
-  return output;
+  return true;
 }
 
 }  // namespace math

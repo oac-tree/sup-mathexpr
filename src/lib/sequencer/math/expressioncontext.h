@@ -41,29 +41,22 @@ namespace math
  *
  */
 
-using ProcessVariableMap = std::map<const std::string, sup::dto::AnyValue>;
+using ProcessVariableMap = std::map<std::string, std::vector<double>>;
 
 class ExpressionContext
 {
 public:
-  ExpressionContext(const std::string& expression);
-  // ExpressionContext(const std::string& expression);
+  ExpressionContext(const std::string& expression, IVariableStore* varhandler);
 
-  ProcessVariableMap* GetVariableList();
-
-  void SetVariableHandler(IVariableStore* var_handler);
-
-  ProcessVariableMap EvaluateExpression();
+  bool EvaluateExpression();
 
 private:
-  bool ReadVariables();
-  bool WriteVariable(std::string varname);
+  bool GetVariables(std::vector<std::string> list_vars);
+  bool SetVariable(std::string varname);
 
   std::string m_raw_expression;
-  ProcessVariableMap m_data;
   IVariableStore* m_variable_handler;
-  std::vector<std::string> m_list_vars;
-  std::map<std::string, std::vector<double>> m_process_data;
+  ProcessVariableMap m_data;
 };
 
 }  // namespace math

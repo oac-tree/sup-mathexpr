@@ -22,9 +22,6 @@
 #include "math_instruction.h"
 
 #include <sequencer/math/expressioncontext.h>
-#include <sup/dto/anytype.h>
-#include <sup/dto/anyvalue.h>
-#include <sup/dto/anyvalue_helper.h>
 #include <sup/dto/basic_scalar_types.h>
 #include <sup/sequencer/generic_utils.h>
 #include <sup/sequencer/instruction_registry.h>
@@ -56,30 +53,27 @@ ExecutionStatus Math::ExecuteSingleImpl(UserInterface& ui, Workspace& ws)
 {
   auto expression = GetAttributeValue<std::string>(EXPR_STRING_ATTR_NAME);
 
-  sup::math::ExpressionContext expr_ctx(expression);
+  sup::math::VariableHandler handler(&ws);
 
-  math::VariableHandler handler(&ws, expr_ctx.GetVariableList());
-
-  expr_ctx.SetVariableHandler(&handler);
-
-  math::ProcessVariableMap output = expr_ctx.EvaluateExpression();
-
-  if (output.count("FAILURE") > 0)
+  try
   {
-    output.at("FAILURE");
-    std::string error_message = InstructionErrorProlog(*this)
-                                + "An assignment variable needs to be defined in the expression.";
+    sup::math::ExpressionContext expr_ctx(expression, &handler);
+    if (!expr_ctx.EvaluateExpression())
+    {
+      std::string error_message =
+        InstructionErrorProlog(*this) + "Failure evaluating the expression.";
+      ui.LogError(error_message);
+      return ExecutionStatus::FAILURE;
+    }
+  }
+  catch (const std::exception& ex)
+  {
+    std::string error_message =
+        InstructionErrorProlog(*this) + ex.what();
     ui.LogError(error_message);
     return ExecutionStatus::FAILURE;
   }
 
-  for (auto assignment : output)
-  {
-    if (!ws.HasVariable(assignment.first) || !ws.SetValue(assignment.first, assignment.second))
-    {
-      return ExecutionStatus::FAILURE;
-    }
-  }
   return ExecutionStatus::SUCCESS;
 }
 
