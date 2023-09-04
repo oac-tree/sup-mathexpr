@@ -1,4 +1,4 @@
-Welcome to sequencer-plugin-math's documentation!
+Welcome to sup-mathexpr's documentation!
 ==================================================
 
 This is a work in progress.

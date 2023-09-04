@@ -1,4 +1,27 @@
-cmake_minimum_required(VERSION 3.15)
+# Project       : SUP - MathExpr
+#
+# Description   : Mathematical expression evaluator for SUP
+#
+# Author        : Ricardo Torres (EXT)
+#
+# Copyright (c) : 2010-2023 ITER Organization,
+#                 CS 90 046
+#                 13067 St. Paul-lez-Durance Cedex
+#                 France
+#
+# This file is part of ITER CODAC software.
+# For the terms and conditions of redistribution or use of this software
+# refer to the file ITER-LICENSE.TXT located in the top level directory
+# of the distribution package.
+
+# Set required CMake version
+# This sets the default CMake behaviour through policies allowing compatibility with future versions
+# Justification:
+#   - CMake 3.12 - CMP0074: find_package command now searches prefixes specified by the <PackageName>_ROOT environment variable
+#       CODAC systems contain conflicting environment variables which generate warnings when this policy is not set to NEW
+#   - CMake 3.13 - CMP0076: relative source file paths are interpreted as being relative to the current source directory
+cmake_minimum_required(VERSION 3.13)
+
 project(sup-mathexpr VERSION 1.0.0 LANGUAGES CXX)
 
 option(COVERAGE "Generate unit test coverage information" OFF)
@@ -10,10 +33,6 @@ option(COA_NO_CODAC "Don't look for the presence of CODAC environment" OFF)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/module)
 set(CMAKE_CONFIG_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/config)
 include(configuration)
-
-if(CMAKE_VERSION VERSION_LESS "3.7.0")
-    set(CMAKE_INCLUDE_CURRENT_DIR ON)
-endif()
 
 add_subdirectory(src)
 if (COA_BUILD_TESTS)

@@ -23,15 +23,8 @@
 
 #include <sup/exprtk/exprtk.hpp>
 
-#include <sup/dto/anytype.h>
-#include <sup/dto/anyvalue.h>
-
 #include <deque>
-#include <map>
 #include <stdexcept>
-#include <string>
-#include <vector>
-#include <exception>
 
 namespace sup
 {
@@ -44,7 +37,7 @@ ExpressionContext::ExpressionContext(const std::string& expression, IVariableSto
   std::vector<std::string> list_vars;
   exprtk::collect_variables(m_raw_expression, list_vars);
 
-  if (!this->GetVariables(list_vars))
+  if (!GetVariables(list_vars))
   {
     throw std::invalid_argument("Invalid variable list.");
   }

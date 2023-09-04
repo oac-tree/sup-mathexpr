@@ -2,9 +2,9 @@
  $HeadURL: $
  $Id: $
 
- Project       : Supervision and Automation - Sequencer
+ Project       : Supervision and Automation - MathExpr
 
- Description   : SUP sequencer EPICS plugin module
+ Description   : Mathematical expression evaluator for SUP
 
  Authors       : CODAC Operation Applications Team
 
@@ -23,12 +23,12 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.iter.codac.units</groupId>
-    <artifactId>sequencer-plugin-math</artifactId>
+    <artifactId>sup-mathexpr</artifactId>
     <packaging>codac</packaging>
     <!-- See ChangeLog file for details -->
     <version>1.0.0</version>
-    <name>SUP sequencer math plugin module</name>
-    <description>SUP sequencer math plugin module</description>
+    <name>SUP MathExpr</name>
+    <description>Mathematical expression evaluator for SUP</description>
     <url>http://www.iter.org/</url>
 
     <!-- Project properties -->
@@ -39,8 +39,7 @@
         <cppcheck.args>--enable=all --suppress=missingInclude --inline-suppr</cppcheck.args>
         <sonar.sources.cpp>src</sonar.sources.cpp>
         <sonar.tests.cpp>test</sonar.tests.cpp>
-        <sonar.exclusions>test/**</sonar.exclusions>
-        <valgrind.enable>false</valgrind.enable>
+        <sonar.exclusions>src/lib/sup/exprtk, test/**</sonar.exclusions>
         <coverage>false</coverage>
     </properties>
 
@@ -86,28 +85,39 @@
                     <!-- Configure packaging and dependencies -->
                     <packaging>
                         <package>
-                        <!-- Plugin libraries -->
-                        <include type="file" source="lib/sequencer/plugins" target="lib/sequencer/plugins">
-                            <include>*.so*</include>
-                        </include>
-                        <!-- Package dependencies -->
-                        <requires codac="true">sequencer</requires>
-                        <requires codac="true" buildOnly="true">sequencer-devel</requires>
-                        <requires codac="true" buildOnly="true">gtest-1.12.1-devel</requires>
-                        <requires version="current" buildOnly="true">cmake</requires>
-                        <!-- RPM scriptlet -->
-                        <scriptlet type="posttrans">
-                            <![CDATA[ ldconfig ]]>
-                        </scriptlet>
-                    </package>
-                    <package name="docs">
-                        <!--  Public API headers  -->
-                        <include type="file" source="doc/${project.artifactId}" target="doc/${project.artifactId}"/>
-                        <!-- Package dependencies -->
-                        <requires version="current">%{codac_rpm_prefix}-${project.artifactId}</requires>
-                        <requires version="current" buildOnly="true">doxygen</requires>
-                        <requires codac="true" buildOnly="true">python-sphinx</requires>
-                    </package>
+                            <!-- Libraries  -->
+                            <include type="file" source="lib" target="lib">
+                                <include>*.so.*</include>
+                            </include>
+                            <!-- Package dependencies -->
+                            <requires codac="true" buildOnly="true">gtest-1.12.1-devel</requires>
+                            <requires version="current" buildOnly="true">cmake</requires>
+                        </package>
+                        <package name="devel">
+                            <!-- CMAKE -->
+                            <include type="file" source="lib/cmake/sup-mathexpr" target="lib/cmake/sup-mathexpr">
+                                <include>*.cmake</include>
+                            </include>
+                            <!--  Libraries  -->
+                            <include type="file" source="lib" target="lib">
+                                <include>*.a</include>
+                                <include>*.so</include>
+                            </include>
+                            <!--  Public API headers  -->
+                            <include type="file" source="include/sup/mathexpr" target="include/sup/mathexpr">
+                                <include>*.h</include>
+                            </include>
+                            <!-- Package dependencies -->
+                            <requires version="current">%{codac_rpm_prefix}-${project.artifactId}</requires>
+                        </package>
+                        <package name="docs">
+                            <!--  Public API headers  -->
+                            <include type="file" source="doc/${project.artifactId}" target="doc/${project.artifactId}"/>
+                            <!-- Package dependencies -->
+                            <requires version="current">%{codac_rpm_prefix}-${project.artifactId}</requires>
+                            <requires version="current" buildOnly="true">doxygen</requires>
+                            <requires codac="true" buildOnly="true">python-sphinx</requires>
+                        </package>
                     </packaging>
                 </configuration>
             </plugin>

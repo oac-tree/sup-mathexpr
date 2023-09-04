@@ -22,12 +22,11 @@
 #ifndef SUP_MATHEXPR_EXPRESSION_CONTEXT_H_
 #define SUP_MATHEXPR_EXPRESSION_CONTEXT_H_
 
-#include <sup/dto/anyvalue.h>
 #include "ivariablestore.h"
 
-#include <vector>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace sup
 {
