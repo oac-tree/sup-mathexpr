@@ -2,9 +2,9 @@
  * $HeadURL: $
  * $Id: $
  *
- * Project       : SUP - Sequencer
+ * Project       : SUP
  *
- * Description   : SUP sequencer math plugin
+ * Description   : SUP MATHEXPR
  *
  * Author        : Ricardo Torres (EXT)
  *
@@ -19,14 +19,14 @@
  * of the distribution package.
  ******************************************************************************/
 
-#ifndef SUP_SEQUENCER_PLUGIN_MATH_I_VARIABLE_STORE_H_
-#define SUP_SEQUENCER_PLUGIN_MATH_I_VARIABLE_STORE_H_
+#ifndef SUP_MATHEXPR_I_VARIABLE_STORE_H_
+#define SUP_MATHEXPR_I_VARIABLE_STORE_H_
 
 #include <string>
 #include <vector>
 namespace sup
 {
-namespace math
+namespace mathexpr
 {
 
 class IVariableStore
@@ -48,6 +48,6 @@ public:
   virtual bool GetVector(const std::string& varname, std::vector<double>& val) const = 0;
   virtual bool SetVector(const std::string& varname, const std::vector<double>& val) = 0;
 };
-}  // namespace math
+}  // namespace mathexpr
 }  // namespace sup
-#endif  // SUP_SEQUENCER_PLUGIN_MATH_I_VARIABLE_STORE_H_
+#endif  // SUP_MATHEXPR_I_VARIABLE_STORE_H_

@@ -2,9 +2,9 @@
  * $HeadURL: $
  * $Id: $
  *
- * Project       : SUP - Sequencer
+ * Project       : SUP
  *
- * Description   : SUP sequencer math plugin
+ * Description   : SUP MATHEXPR
  *
  * Author        : Ricardo Torres (EXT)
  *
@@ -21,10 +21,8 @@
 
 #include "expressioncontext.h"
 
-#include "sequencer/math/ivariablestore.h"
-#include "sequencer/math/variable_handler.h"
+#include <sup/exprtk/exprtk.hpp>
 
-#include <sequencer/exprtk/exprtk.hpp>
 #include <sup/dto/anytype.h>
 #include <sup/dto/anyvalue.h>
 
@@ -37,7 +35,7 @@
 
 namespace sup
 {
-namespace math
+namespace mathexpr
 {
 
 ExpressionContext::ExpressionContext(const std::string& expression, IVariableStore* varhandler)
@@ -50,6 +48,51 @@ ExpressionContext::ExpressionContext(const std::string& expression, IVariableSto
   {
     throw std::invalid_argument("Invalid variable list.");
   }
+}
+
+bool ExpressionContext::EvaluateExpression()
+{
+  exprtk::symbol_table<double> m_symbol_table;
+  exprtk::expression<double> m_expression;
+  exprtk::parser<double> m_parser;
+  std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> m_symbol_list;
+
+  for (auto& var : m_data)
+  {
+    auto varname = var.first;
+    switch (m_variable_handler->GetVariableType(varname))
+    {
+    case IVariableStore::kScalar:
+      m_symbol_table.add_variable(varname, var.second[0]);
+      break;
+    case IVariableStore::kVector:
+      m_symbol_table.add_vector(varname, var.second);
+      break;
+    case IVariableStore::kUnknown:
+      break;
+    }
+  }
+
+  m_expression.register_symbol_table(m_symbol_table);
+
+  m_parser.dec().collect_assignments() = true;
+  m_parser.compile(m_raw_expression, m_expression);
+  m_parser.dec().assignment_symbols(m_symbol_list);
+
+  m_expression.value();
+
+  if (m_symbol_list.size() == 0)
+  {
+    return false;
+  }
+  for (auto assignment : m_symbol_list)
+  {
+    if (!this->SetVariable(assignment.first))
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool ExpressionContext::GetVariables(std::vector<std::string> list_vars)
@@ -102,51 +145,6 @@ bool ExpressionContext::SetVariable(std::string varname)
   return true;
 }
 
-bool ExpressionContext::EvaluateExpression()
-{
-  exprtk::symbol_table<double> m_symbol_table;
-  exprtk::expression<double> m_expression;
-  exprtk::parser<double> m_parser;
-  std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> m_symbol_list;
-
-  for (auto& var : m_data)
-  {
-    auto varname = var.first;
-    switch (m_variable_handler->GetVariableType(varname))
-    {
-    case IVariableStore::kScalar:
-      m_symbol_table.add_variable(varname, var.second[0]);
-      break;
-    case IVariableStore::kVector:
-      m_symbol_table.add_vector(varname, var.second);
-      break;
-    case IVariableStore::kUnknown:
-      break;
-    }
-  }
-
-  m_expression.register_symbol_table(m_symbol_table);
-
-  m_parser.dec().collect_assignments() = true;
-  m_parser.compile(m_raw_expression, m_expression);
-  m_parser.dec().assignment_symbols(m_symbol_list);
-
-  m_expression.value();
-
-  if (m_symbol_list.size() == 0)
-  {
-    return false;
-  }
-  for (auto assignment : m_symbol_list)
-  {
-    if (!this->SetVariable(assignment.first))
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-}  // namespace math
+}  // namespace mathexpr
 
 }  // namespace sup

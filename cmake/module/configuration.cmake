@@ -1,14 +1,9 @@
-# -----------------------------------------------------------------------------
-# Modules
-# -----------------------------------------------------------------------------
+# Settings of CMake project
 
-include(CTest)
 include(GNUInstallDirs)
+include(CTest)
 
-# -----------------------------------------------------------------------------
-# CODAC enviorenment
-# -----------------------------------------------------------------------------
-
+# Detecting CODAC environment
 if(NOT COA_NO_CODAC)
   # cmake warns for the existance of ``<PackageName>_ROOT`` (CODAC_ROOT in this case) variables and ignores them
   # for compatibility reasons, we set the related policy to NEW behaviour to suppress warnings and enable desired behaviour
@@ -32,55 +27,25 @@ else()
   message(STATUS "Compiling without CODAC")
 endif()
 
-# -----------------------------------------------------------------------------
-# Variables
-# -----------------------------------------------------------------------------
+get_filename_component(SUP_MATHEXPR_PROJECT_DIR "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
 
+# Build settings
 if(COVERAGE)
   # On coverage builds  alsways skip building docs and build tests
   set(COA_BUILD_DOCUMENTATION OFF)
   set(COA_BUILD_TESTS ON)
 endif()
 
-set(SUP_SEQUENCER_PLUGIN_MATH_SOVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR})
-set(SUP_SEQUENCER_PLUGIN_MATH_BUILDVERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
-
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif()
 
-# -----------------------------------------------------------------------------
+set(LIBVERSION ${CMAKE_PROJECT_VERSION})
+set(LIBSOVERSION ${CMAKE_PROJECT_VERSION_MAJOR})
+
 # Directories
-# -----------------------------------------------------------------------------
-
-if (NOT DEFINED PLUGIN_PATH)
-  set(PLUGIN_PATH lib/sequencer/plugins)
-endif()
-message(STATUS "PLUGIN_PATH: ${PLUGIN_PATH}")
-
-if (NOT DEFINED PLUGIN_RUNTIME_DIRECTORY)
-  set(PLUGIN_RUNTIME_DIRECTORY ${CMAKE_BINARY_DIR}/${PLUGIN_PATH})
-endif()
-
 if (NOT DEFINED TEST_OUTPUT_DIRECTORY)
   set(TEST_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/test_bin)
 endif()
 
-file(MAKE_DIRECTORY ${PLUGIN_RUNTIME_DIRECTORY})
 file(MAKE_DIRECTORY ${TEST_OUTPUT_DIRECTORY})
-
-# -----------------------------------------------------------------------------
-# Dependencies
-# -----------------------------------------------------------------------------
-
-find_package(sequencer REQUIRED)
-
-# -----------------------------------------------------------------------------
-# Flags
-# -----------------------------------------------------------------------------
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
-if (COVERAGE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -fprofile-arcs -ftest-coverage --coverage")
-  message(INFO " Coverage enabled ${CMAKE_CXX_FLAGS}")
-endif()

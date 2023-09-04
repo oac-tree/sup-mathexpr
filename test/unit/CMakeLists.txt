@@ -2,9 +2,7 @@ add_executable(unit-tests)
 
 target_sources(unit-tests
   PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/math_tests.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/test_user_interface.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/unit_test_helper.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mathexpr_test.cpp
 )
 
 target_include_directories(unit-tests
@@ -14,7 +12,7 @@ target_include_directories(unit-tests
 
 find_package(GTest REQUIRED)
 
-target_link_libraries(unit-tests PUBLIC GTest::GTest GTest::Main sequencer-math)
+target_link_libraries(unit-tests PUBLIC GTest::GTest GTest::Main sup-mathexpr)
 
 set_target_properties(unit-tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TEST_OUTPUT_DIRECTORY})
 

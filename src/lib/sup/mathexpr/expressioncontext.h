@@ -2,9 +2,9 @@
  * $HeadURL: $
  * $Id: $
  *
- * Project       : SUP - Sequencer
+ * Project       : SUP
  *
- * Description   : SUP sequencer math plugin
+ * Description   : SUP SUP MATHEXPR
  *
  * Author        : Ricardo Torres (EXT)
  *
@@ -19,13 +19,11 @@
  * of the distribution package.
  ******************************************************************************/
 
-#ifndef SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
-#define SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
+#ifndef SUP_MATHEXPR_EXPRESSION_CONTEXT_H_
+#define SUP_MATHEXPR_EXPRESSION_CONTEXT_H_
 
 #include <sup/dto/anyvalue.h>
 #include "ivariablestore.h"
-
-#include <sequencer/exprtk/exprtk.hpp>
 
 #include <vector>
 #include <map>
@@ -33,7 +31,7 @@
 
 namespace sup
 {
-namespace math
+namespace mathexpr
 {
 
 /**
@@ -59,8 +57,8 @@ private:
   ProcessVariableMap m_data;
 };
 
-}  // namespace math
+}  // namespace mathexpr
 
 }  // namespace sup
 
-#endif  // SUP_SEQUENCER_PLUGIN_MATH_EXPRESSION_CONTEXT_H_
+#endif  // SUP_MATHEXPR_EXPRESSION_CONTEXT_H_
