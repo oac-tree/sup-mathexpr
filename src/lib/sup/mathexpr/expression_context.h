@@ -2,9 +2,9 @@
  * $HeadURL: $
  * $Id: $
  *
- * Project       : SUP
+ * Project       : SUP - MathExpr
  *
- * Description   : SUP SUP MATHEXPR
+ * Description   : Mathematical expression evaluator for SUP
  *
  * Author        : Ricardo Torres (EXT)
  *
@@ -22,7 +22,7 @@
 #ifndef SUP_MATHEXPR_EXPRESSION_CONTEXT_H_
 #define SUP_MATHEXPR_EXPRESSION_CONTEXT_H_
 
-#include "ivariablestore.h"
+#include <sup/mathexpr/i_variable_store.h>
 
 #include <map>
 #include <string>
@@ -35,24 +35,22 @@ namespace mathexpr
 
 /**
  * @brief Processes Anyvalue variables for mathematical expression evaluation
- *
  */
-
-using ProcessVariableMap = std::map<std::string, std::vector<double>>;
-
 class ExpressionContext
 {
 public:
-  ExpressionContext(const std::string& expression, IVariableStore* varhandler);
+  ExpressionContext(const std::string& expression, IVariableStore& varhandler);
 
   bool EvaluateExpression();
 
 private:
+  using ProcessVariableMap = std::map<std::string, std::vector<double>>;
+
   bool GetVariables(std::vector<std::string> list_vars);
   bool SetVariable(std::string varname);
 
   std::string m_raw_expression;
-  IVariableStore* m_variable_handler;
+  IVariableStore& m_variable_handler;
   ProcessVariableMap m_data;
 };
 

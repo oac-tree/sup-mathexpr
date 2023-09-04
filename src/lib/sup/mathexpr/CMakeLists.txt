@@ -11,7 +11,7 @@ set_target_properties(sup-mathexpr PROPERTIES
 
 target_sources(sup-mathexpr
   PRIVATE
-    expressioncontext.cpp
+    expression_context.cpp
 )
 
 target_include_directories(sup-mathexpr PUBLIC
@@ -23,7 +23,7 @@ install(TARGETS sup-mathexpr EXPORT sup-mathexpr-targets LIBRARY DESTINATION ${C
 set_target_properties(sup-mathexpr PROPERTIES EXPORT_NAME sup-mathexpr)
 
 install(FILES
-  expressioncontext.h
-  ivariablestore.h
+  expression_context.h
+  i_variable_store.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/sup/mathexpr
 )

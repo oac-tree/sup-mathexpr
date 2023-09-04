@@ -2,9 +2,9 @@
  * $HeadURL: $
  * $Id: $
  *
- * Project       : SUP
+ * Project       : SUP - MathExpr
  *
- * Description   : SUP MATHEXPR
+ * Description   : Mathematical expression evaluator for SUP
  *
  * Author        : Ricardo Torres (EXT)
  *
@@ -24,11 +24,15 @@
 
 #include <string>
 #include <vector>
+
 namespace sup
 {
 namespace mathexpr
 {
 
+/**
+ * @brief Interface to implement to be able to inject variable access into ExpressionContext.
+ */
 class IVariableStore
 {
 public:
@@ -48,6 +52,9 @@ public:
   virtual bool GetVector(const std::string& varname, std::vector<double>& val) const = 0;
   virtual bool SetVector(const std::string& varname, const std::vector<double>& val) = 0;
 };
+
 }  // namespace mathexpr
+
 }  // namespace sup
+
 #endif  // SUP_MATHEXPR_I_VARIABLE_STORE_H_

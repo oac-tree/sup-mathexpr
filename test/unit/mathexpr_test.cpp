@@ -2,9 +2,9 @@
 * $HeadURL: $
 * $Id: $
 *
-* Project       : Supervision and Automation
+* Project       : SUP - MathExpr
 *
-* Description   : SUP MATHEXPR
+* Description   : Mathematical expression evaluator for SUP
 *
 * Author        : Ricardo Torres (Ext)
 *
@@ -19,8 +19,8 @@
 * of the distribution package.
 ******************************************************************************/
 
-#include <sup/mathexpr/expressioncontext.h>
-#include <sup/mathexpr/ivariablestore.h>
+#include <sup/mathexpr/expression_context.h>
+#include <sup/mathexpr/i_variable_store.h>
 
 #include <gtest/gtest.h>
 #include <cstddef>
@@ -77,7 +77,7 @@ TEST_F(MathexprTest, Success)
   vars.emplace("z", z);
 
   vectorhandler handler(&vars);
-  sup::mathexpr::ExpressionContext expr_ctx("z:=x+y",&handler);
+  sup::mathexpr::ExpressionContext expr_ctx("z:=x+y", handler);
 
   try {
     expr_ctx.EvaluateExpression();

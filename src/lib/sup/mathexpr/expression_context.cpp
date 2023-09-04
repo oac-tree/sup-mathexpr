@@ -2,9 +2,9 @@
  * $HeadURL: $
  * $Id: $
  *
- * Project       : SUP
+ * Project       : SUP - MathExpr
  *
- * Description   : SUP MATHEXPR
+ * Description   : Mathematical expression evaluator for SUP
  *
  * Author        : Ricardo Torres (EXT)
  *
@@ -19,7 +19,7 @@
  * of the distribution package.
  ******************************************************************************/
 
-#include "expressioncontext.h"
+#include "expression_context.h"
 
 #include <sup/exprtk/exprtk.hpp>
 
@@ -31,7 +31,7 @@ namespace sup
 namespace mathexpr
 {
 
-ExpressionContext::ExpressionContext(const std::string& expression, IVariableStore* varhandler)
+ExpressionContext::ExpressionContext(const std::string& expression, IVariableStore& varhandler)
     : m_raw_expression(expression), m_variable_handler(varhandler)
 {
   std::vector<std::string> list_vars;
@@ -39,46 +39,47 @@ ExpressionContext::ExpressionContext(const std::string& expression, IVariableSto
 
   if (!GetVariables(list_vars))
   {
-    throw std::invalid_argument("Invalid variable list.");
+    throw std::invalid_argument("ExpressionContext(): expression variables could not be properly "
+                                "read from the variable store.");
   }
 }
 
 bool ExpressionContext::EvaluateExpression()
 {
-  exprtk::symbol_table<double> m_symbol_table;
-  exprtk::expression<double> m_expression;
-  exprtk::parser<double> m_parser;
-  std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> m_symbol_list;
+  exprtk::symbol_table<double> symbol_table;
+  exprtk::expression<double> expression;
+  exprtk::parser<double> parser;
+  std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> assignment_symbol_list;
 
   for (auto& var : m_data)
   {
     auto varname = var.first;
-    switch (m_variable_handler->GetVariableType(varname))
+    switch (m_variable_handler.GetVariableType(varname))
     {
     case IVariableStore::kScalar:
-      m_symbol_table.add_variable(varname, var.second[0]);
+      symbol_table.add_variable(varname, var.second[0]);
       break;
     case IVariableStore::kVector:
-      m_symbol_table.add_vector(varname, var.second);
+      symbol_table.add_vector(varname, var.second);
       break;
     case IVariableStore::kUnknown:
       break;
     }
   }
 
-  m_expression.register_symbol_table(m_symbol_table);
+  expression.register_symbol_table(symbol_table);
 
-  m_parser.dec().collect_assignments() = true;
-  m_parser.compile(m_raw_expression, m_expression);
-  m_parser.dec().assignment_symbols(m_symbol_list);
+  parser.dec().collect_assignments() = true;
+  parser.compile(m_raw_expression, expression);
+  parser.dec().assignment_symbols(assignment_symbol_list);
 
-  m_expression.value();
+  expression.value();
 
-  if (m_symbol_list.size() == 0)
+  if (assignment_symbol_list.size() == 0)
   {
     return false;
   }
-  for (auto assignment : m_symbol_list)
+  for (auto assignment : assignment_symbol_list)
   {
     if (!this->SetVariable(assignment.first))
     {
@@ -93,17 +94,17 @@ bool ExpressionContext::GetVariables(std::vector<std::string> list_vars)
   std::vector<double> readvector;
   for (const auto& varname : list_vars)
   {
-    switch (m_variable_handler->GetVariableType(varname))
+    switch (m_variable_handler.GetVariableType(varname))
     {
     case IVariableStore::kScalar:
       readvector.resize(1);
-      if (!m_variable_handler->GetScalar(varname, readvector[0]))
+      if (!m_variable_handler.GetScalar(varname, readvector[0]))
       {
         return false;
       }
       break;
     case IVariableStore::kVector:
-      if (!m_variable_handler->GetVector(varname, readvector))
+      if (!m_variable_handler.GetVector(varname, readvector))
       {
         return false;
       }
@@ -118,16 +119,16 @@ bool ExpressionContext::GetVariables(std::vector<std::string> list_vars)
 
 bool ExpressionContext::SetVariable(std::string varname)
 {
-  switch (m_variable_handler->GetVariableType(varname))
+  switch (m_variable_handler.GetVariableType(varname))
   {
   case IVariableStore::kScalar:
-    if (!m_variable_handler->SetScalar(varname, m_data.at(varname)[0]))
+    if (!m_variable_handler.SetScalar(varname, m_data.at(varname)[0]))
     {
       return false;
     }
     break;
   case IVariableStore::kVector:
-    if (!m_variable_handler->SetVector(varname, m_data.at(varname)))
+    if (!m_variable_handler.SetVector(varname, m_data.at(varname)))
     {
       return false;
     }
