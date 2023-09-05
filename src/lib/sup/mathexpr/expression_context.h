@@ -46,8 +46,8 @@ public:
 private:
   using ProcessVariableMap = std::map<std::string, std::vector<double>>;
 
-  bool GetVariables(std::vector<std::string> list_vars);
-  bool SetVariable(std::string varname);
+  bool GetVariables(const std::vector<std::string>& list_vars);
+  bool SetVariable(const std::string& varname);
 
   std::string m_raw_expression;
   IVariableStore& m_variable_handler;

@@ -89,7 +89,7 @@ bool ExpressionContext::EvaluateExpression()
   return true;
 }
 
-bool ExpressionContext::GetVariables(std::vector<std::string> list_vars)
+bool ExpressionContext::GetVariables(const std::vector<std::string>& list_vars)
 {
   std::vector<double> readvector;
   for (const auto& varname : list_vars)
@@ -117,7 +117,7 @@ bool ExpressionContext::GetVariables(std::vector<std::string> list_vars)
   return true;
 }
 
-bool ExpressionContext::SetVariable(std::string varname)
+bool ExpressionContext::SetVariable(const std::string& varname)
 {
   switch (m_variable_handler.GetVariableType(varname))
   {
