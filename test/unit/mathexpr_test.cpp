@@ -128,10 +128,10 @@ TEST_F(MathexprTest, Success)
   vars.emplace("z", z);
 
   vectorhandler handler(&vars);
-  ExpressionContext expr_ctx("z:=x+y", handler);
+  ExpressionContext expr_ctx(handler);
 
   try {
-    expr_ctx.EvaluateExpression();
+    expr_ctx.EvaluateExpression("z:=x+y");
   } catch (const std::exception& ex) {
     std::cout << ex.what() << std::endl;
   }
@@ -141,29 +141,22 @@ TEST_F(MathexprTest, Success)
 
 TEST_F(MathexprTest, Exceptions)
 {
+  TestDoubleHandler handler;
+  handler.AddScalar("a", 1.0);
+  handler.AddScalar("b", 2.0);
+  handler.AddScalar("readonly", 0.0);
+  ExpressionContext expr_ctx(handler);
   {
     // Expression needs value from non-exisiting variable
-    TestDoubleHandler handler;
-    handler.AddScalar("a", 1.0);
-    ExpressionContext expr_ctx("a+c", handler);
-    EXPECT_THROW(expr_ctx.EvaluateExpression(), ExpressionEvaluateException);
+    EXPECT_THROW(expr_ctx.EvaluateExpression("a+c"), ExpressionEvaluateException);
   }
   {
     // Expression cannot be correctly parsed
-    TestDoubleHandler handler;
-    handler.AddScalar("a", 1.0);
-    handler.AddScalar("b", 2.0);
-    ExpressionContext expr_ctx("a +-& b", handler);
-    EXPECT_THROW(expr_ctx.EvaluateExpression(), ExpressionEvaluateException);
+    EXPECT_THROW(expr_ctx.EvaluateExpression("a +-& b"), ExpressionEvaluateException);
   }
   {
     // Expression needs to write to readonly variable
-    TestDoubleHandler handler;
-    handler.AddScalar("a", 1.0);
-    handler.AddScalar("b", 2.0);
-    handler.AddScalar("readonly", 0.0);
-    ExpressionContext expr_ctx("readonly:=a+b", handler);
-    EXPECT_THROW(expr_ctx.EvaluateExpression(), ExpressionEvaluateException);
+    EXPECT_THROW(expr_ctx.EvaluateExpression("readonly:=a+b"), ExpressionEvaluateException);
   }
 }
 
@@ -173,25 +166,14 @@ TEST_F(MathexprTest, Conditions)
   handler.AddScalar("a", 1.0);
   handler.AddScalar("b", 2.0);
   handler.AddScalar("c", 0.0);
-  {
-    // Expression without assigment returns the expression's value (true)
-    ExpressionContext expr_ctx("a<b", handler);
-    EXPECT_TRUE(expr_ctx.EvaluateExpression());
-  }
-  {
-    // Expression without assigment returns the expression's value (false)
-    ExpressionContext expr_ctx("a>b", handler);
-    EXPECT_FALSE(expr_ctx.EvaluateExpression());
-  }
-  {
-    // Expression with assigment returns true if no errors were encountered
-    ExpressionContext expr_ctx("c:=a+b", handler);
-    EXPECT_TRUE(expr_ctx.EvaluateExpression());
-  }
-  {
-    // Expression with assigment returns true if no errors were encountered, even when the
-    // expression itself evaluates to zero (false)
-    ExpressionContext expr_ctx("c:=0", handler);
-    EXPECT_TRUE(expr_ctx.EvaluateExpression());
-  }
+  ExpressionContext expr_ctx(handler);
+  // Expression without assigment returns the expression's value (true)
+  EXPECT_TRUE(expr_ctx.EvaluateExpression("a<b"));
+  // Expression without assigment returns the expression's value (false)
+  EXPECT_FALSE(expr_ctx.EvaluateExpression("a>b"));
+  // Expression with assigment returns true if no errors were encountered
+  EXPECT_TRUE(expr_ctx.EvaluateExpression("c:=a+b"));
+  // Expression with assigment returns true if no errors were encountered, even when the
+  // expression itself evaluates to zero (false)
+  EXPECT_TRUE(expr_ctx.EvaluateExpression("c:=0"));
 }

@@ -38,15 +38,14 @@ namespace sup
 namespace mathexpr
 {
 
-ExpressionContext::ExpressionContext(const std::string& expression, IVariableStore& varhandler)
-  : m_raw_expression(expression)
-  , m_variable_handler(varhandler)
-  , m_data{}
+ExpressionContext::ExpressionContext(IVariableStore& varhandler)
+  : m_variable_handler(varhandler)
 {}
 
-double ExpressionContext::EvaluateExpression()
+double ExpressionContext::EvaluateExpression(const std::string& expression)
 {
-  if (!CollectVariables())
+  ProcessVariableMap data_map;
+  if (!CollectVariables(data_map, expression))
   {
     const std::string error = "ExpressionContext::EvaluateExpression(): expression variables could "
                               "not be properly read from the variable store.";
@@ -54,11 +53,11 @@ double ExpressionContext::EvaluateExpression()
   }
 
   exprtk::symbol_table<double> symbol_table;
-  exprtk::expression<double> expression;
+  exprtk::expression<double> exprtk_expression;
   exprtk::parser<double> parser;
   std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> assignment_symbol_list;
 
-  for (auto& var : m_data)
+  for (auto& var : data_map)
   {
     auto varname = var.first;
     switch (m_variable_handler.GetVariableType(varname))
@@ -74,10 +73,10 @@ double ExpressionContext::EvaluateExpression()
     }
   }
 
-  expression.register_symbol_table(symbol_table);
+  exprtk_expression.register_symbol_table(symbol_table);
 
   parser.dec().collect_assignments() = true;
-  if (!parser.compile(m_raw_expression, expression))
+  if (!parser.compile(expression, exprtk_expression))
   {
     const std::string error = "ExpressionContext::EvaluateExpression(): expression could "
                               "not be properly parsed.";
@@ -85,7 +84,7 @@ double ExpressionContext::EvaluateExpression()
   }
   parser.dec().assignment_symbols(assignment_symbol_list);
 
-  auto expr_val = expression.value();
+  auto expr_val = exprtk_expression.value();
 
   if (assignment_symbol_list.size() == 0)
   {
@@ -93,7 +92,7 @@ double ExpressionContext::EvaluateExpression()
   }
   for (auto assignment : assignment_symbol_list)
   {
-    if (!this->SetVariable(assignment.first))
+    if (!this->SetVariable(data_map, assignment.first))
     {
       const std::string error = "ExpressionContext::EvaluateExpression(): expression variables "
                                 "could not be properly written to the variable store.";
@@ -103,10 +102,11 @@ double ExpressionContext::EvaluateExpression()
   return TRUE_AS_DOUBLE;
 }
 
-bool ExpressionContext::CollectVariables()
+bool ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
+                                         const std::string& expression)
 {
   std::vector<std::string> list_vars;
-  exprtk::collect_variables(m_raw_expression, list_vars);
+  exprtk::collect_variables(expression, list_vars);
 
   std::vector<double> readvector;
   for (const auto& varname : list_vars)
@@ -129,23 +129,23 @@ bool ExpressionContext::CollectVariables()
     case IVariableStore::kUnknown:
       return false;
     }
-    m_data.emplace(varname, readvector);
+    data_map.emplace(varname, readvector);
   }
   return true;
 }
 
-bool ExpressionContext::SetVariable(const std::string& varname)
+bool ExpressionContext::SetVariable(const ProcessVariableMap& data_map, const std::string& varname)
 {
   switch (m_variable_handler.GetVariableType(varname))
   {
   case IVariableStore::kScalar:
-    if (!m_variable_handler.SetScalar(varname, m_data.at(varname)[0]))
+    if (!m_variable_handler.SetScalar(varname, data_map.at(varname)[0]))
     {
       return false;
     }
     break;
   case IVariableStore::kVector:
-    if (!m_variable_handler.SetVector(varname, m_data.at(varname)))
+    if (!m_variable_handler.SetVector(varname, data_map.at(varname)))
     {
       return false;
     }

@@ -34,28 +34,32 @@ namespace mathexpr
 {
 
 /**
- * @brief Processes Anyvalue variables for mathematical expression evaluation
- *
- * @details If the expression contains no assigments, the double representation of the expression
- * is returned in EvaluateExpression(). In the presence of assignments, the return value is 1.0
- * when successful and 0.0 otherwise.
+ * @brief Class that handles mathematical expression evaluation.
  */
 class ExpressionContext
 {
 public:
-  ExpressionContext(const std::string& expression, IVariableStore& varhandler);
+  explicit ExpressionContext(IVariableStore& varhandler);
 
-  double EvaluateExpression();
+/**
+ * @brief Evaluate the given expression.
+ *
+ * @param expression Expression to evaluate
+ *
+ * @return If the expression contains no assigments, the double representation of the expression
+ * is returned. In the presence of assignments, the return value is 1.0.
+ *
+ * @throws ExpressionEvaluateException when variables are missing or the expression could not be
+ * parsed correctly.
+ */
+  double EvaluateExpression(const std::string& expression);
 
 private:
   using ProcessVariableMap = std::map<std::string, std::vector<double>>;
+  bool CollectVariables(ProcessVariableMap& data_map, const std::string& expression);
+  bool SetVariable(const ProcessVariableMap& data_map, const std::string& varname);
 
-  bool CollectVariables();
-  bool SetVariable(const std::string& varname);
-
-  std::string m_raw_expression;
   IVariableStore& m_variable_handler;
-  ProcessVariableMap m_data;
 };
 
 }  // namespace mathexpr
