@@ -145,7 +145,6 @@ TEST_F(MathexprTest, Exceptions)
     // Expression needs value from non-exisiting variable
     TestDoubleHandler handler;
     handler.AddScalar("a", 1.0);
-    handler.AddScalar("b", 2.0);
     ExpressionContext expr_ctx("a+c", handler);
     EXPECT_THROW(expr_ctx.EvaluateExpression(), ExpressionEvaluateException);
   }
@@ -174,7 +173,6 @@ TEST_F(MathexprTest, Conditions)
   handler.AddScalar("a", 1.0);
   handler.AddScalar("b", 2.0);
   handler.AddScalar("c", 0.0);
-  handler.AddScalar("readonly", 0.0);
   {
     // Expression without assigment returns the expression's value (true)
     ExpressionContext expr_ctx("a<b", handler);

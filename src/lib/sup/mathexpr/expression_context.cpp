@@ -31,7 +31,6 @@
 namespace
 {
 constexpr double TRUE_AS_DOUBLE = 1.0;
-constexpr double FALSE_AS_DOUBLE = 0.0;
 }
 
 namespace sup
@@ -47,7 +46,7 @@ ExpressionContext::ExpressionContext(const std::string& expression, IVariableSto
 
 double ExpressionContext::EvaluateExpression()
 {
-  if (!GetVariables())
+  if (!CollectVariables())
   {
     const std::string error = "ExpressionContext::EvaluateExpression(): expression variables could "
                               "not be properly read from the variable store.";
@@ -104,7 +103,7 @@ double ExpressionContext::EvaluateExpression()
   return TRUE_AS_DOUBLE;
 }
 
-bool ExpressionContext::GetVariables()
+bool ExpressionContext::CollectVariables()
 {
   std::vector<std::string> list_vars;
   exprtk::collect_variables(m_raw_expression, list_vars);

@@ -50,7 +50,7 @@ public:
 private:
   using ProcessVariableMap = std::map<std::string, std::vector<double>>;
 
-  bool GetVariables();
+  bool CollectVariables();
   bool SetVariable(const std::string& varname);
 
   std::string m_raw_expression;
