@@ -19,6 +19,7 @@
 * of the distribution package.
 ******************************************************************************/
 
+#include <sup/mathexpr/exceptions.h>
 #include <sup/mathexpr/expression_context.h>
 #include <sup/mathexpr/i_variable_store.h>
 
@@ -28,7 +29,57 @@
 
 using ProcessVariableMap = std::map<std::string, std::vector<double>>;
 
-class vectorhandler : public sup::mathexpr::IVariableStore
+using namespace sup::mathexpr;
+
+class TestDoubleHandler : public IVariableStore
+{
+public:
+  TestDoubleHandler() = default;
+  ~TestDoubleHandler() = default;
+
+  void AddScalar(const std::string &varname, double val)
+  {
+    m_var_map[varname] = val;
+  }
+
+  VarType GetVariableType(const std::string &varname) const override { return kScalar; }
+  bool SetScalar(const std::string &varname, const double &val) override
+  {
+    if (varname == "readonly")
+    {
+      return false;
+    }
+    const auto it = m_var_map.find(varname);
+    if (it == m_var_map.end())
+    {
+      return false;
+    }
+    it->second = val;
+    return true;
+  }
+  bool GetScalar(const std::string &varname, double &val) const override
+  {
+    const auto it = m_var_map.find(varname);
+    if (it == m_var_map.end())
+    {
+      return false;
+    }
+    val = it->second;
+    return true;
+  }
+  bool SetVector(const std::string &varname, const std::vector<double> &val) override
+  {
+    return false;
+  }
+  bool GetVector(const std::string &varname, std::vector<double> &val) const override
+  {
+    return false;
+  }
+private:
+  std::map<std::string, double> m_var_map;
+};
+
+class vectorhandler : public IVariableStore
 {
 public:
   vectorhandler(ProcessVariableMap* vars) : m_vars(vars){};
@@ -77,7 +128,7 @@ TEST_F(MathexprTest, Success)
   vars.emplace("z", z);
 
   vectorhandler handler(&vars);
-  sup::mathexpr::ExpressionContext expr_ctx("z:=x+y", handler);
+  ExpressionContext expr_ctx("z:=x+y", handler);
 
   try {
     expr_ctx.EvaluateExpression();
@@ -88,3 +139,61 @@ TEST_F(MathexprTest, Success)
   EXPECT_TRUE(vars.at("z")==a);
 }
 
+TEST_F(MathexprTest, Exceptions)
+{
+  {
+    // Expression needs value from non-exisiting variable
+    TestDoubleHandler handler;
+    handler.AddScalar("a", 1.0);
+    handler.AddScalar("b", 2.0);
+    ExpressionContext expr_ctx("a+c", handler);
+    EXPECT_THROW(expr_ctx.EvaluateExpression(), ExpressionEvaluateException);
+  }
+  {
+    // Expression cannot be correctly parsed
+    TestDoubleHandler handler;
+    handler.AddScalar("a", 1.0);
+    handler.AddScalar("b", 2.0);
+    ExpressionContext expr_ctx("a +-& b", handler);
+    EXPECT_THROW(expr_ctx.EvaluateExpression(), ExpressionEvaluateException);
+  }
+  {
+    // Expression needs to write to readonly variable
+    TestDoubleHandler handler;
+    handler.AddScalar("a", 1.0);
+    handler.AddScalar("b", 2.0);
+    handler.AddScalar("readonly", 0.0);
+    ExpressionContext expr_ctx("readonly:=a+b", handler);
+    EXPECT_THROW(expr_ctx.EvaluateExpression(), ExpressionEvaluateException);
+  }
+}
+
+TEST_F(MathexprTest, Conditions)
+{
+  TestDoubleHandler handler;
+  handler.AddScalar("a", 1.0);
+  handler.AddScalar("b", 2.0);
+  handler.AddScalar("c", 0.0);
+  handler.AddScalar("readonly", 0.0);
+  {
+    // Expression without assigment returns the expression's value (true)
+    ExpressionContext expr_ctx("a<b", handler);
+    EXPECT_TRUE(expr_ctx.EvaluateExpression());
+  }
+  {
+    // Expression without assigment returns the expression's value (false)
+    ExpressionContext expr_ctx("a>b", handler);
+    EXPECT_FALSE(expr_ctx.EvaluateExpression());
+  }
+  {
+    // Expression with assigment returns true if no errors were encountered
+    ExpressionContext expr_ctx("c:=a+b", handler);
+    EXPECT_TRUE(expr_ctx.EvaluateExpression());
+  }
+  {
+    // Expression with assigment returns true if no errors were encountered, even when the
+    // expression itself evaluates to zero (false)
+    ExpressionContext expr_ctx("c:=0", handler);
+    EXPECT_TRUE(expr_ctx.EvaluateExpression());
+  }
+}
