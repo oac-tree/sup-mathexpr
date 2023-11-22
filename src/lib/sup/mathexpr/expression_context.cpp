@@ -19,6 +19,9 @@
  * of the distribution package.
  ******************************************************************************/
 
+// Allow for uppercase variable names:
+#define exprtk_disable_caseinsensitivity
+
 #include "expression_context.h"
 
 #include <sup/mathexpr/exceptions.h>
