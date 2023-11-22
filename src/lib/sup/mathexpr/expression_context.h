@@ -56,8 +56,8 @@ public:
 
 private:
   using ProcessVariableMap = std::map<std::string, std::vector<double>>;
-  bool CollectVariables(ProcessVariableMap& data_map, const std::string& expression);
-  bool SetVariable(const ProcessVariableMap& data_map, const std::string& varname);
+  void CollectVariables(ProcessVariableMap& data_map, const std::string& expression);
+  void SetVariable(const ProcessVariableMap& data_map, const std::string& varname);
 
   IVariableStore& m_variable_handler;
 };

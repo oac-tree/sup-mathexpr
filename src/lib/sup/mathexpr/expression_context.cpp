@@ -45,12 +45,7 @@ ExpressionContext::ExpressionContext(IVariableStore& varhandler)
 double ExpressionContext::EvaluateExpression(const std::string& expression)
 {
   ProcessVariableMap data_map;
-  if (!CollectVariables(data_map, expression))
-  {
-    const std::string error = "ExpressionContext::EvaluateExpression(): expression variables could "
-                              "not be properly read from the variable store.";
-    throw ExpressionEvaluateException(error);
-  }
+  CollectVariables(data_map, expression);
 
   exprtk::symbol_table<double> symbol_table;
   exprtk::expression<double> exprtk_expression;
@@ -92,17 +87,12 @@ double ExpressionContext::EvaluateExpression(const std::string& expression)
   }
   for (auto assignment : assignment_symbol_list)
   {
-    if (!this->SetVariable(data_map, assignment.first))
-    {
-      const std::string error = "ExpressionContext::EvaluateExpression(): expression variables "
-                                "could not be properly written to the variable store.";
-      throw ExpressionEvaluateException(error);
-    }
+    SetVariable(data_map, assignment.first);
   }
   return TRUE_AS_DOUBLE;
 }
 
-bool ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
+void ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
                                          const std::string& expression)
 {
   std::vector<std::string> list_vars;
@@ -117,43 +107,59 @@ bool ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
       readvector.resize(1);
       if (!m_variable_handler.GetScalar(varname, readvector[0]))
       {
-        return false;
+        const std::string error =
+          "ExpressionContext::CollectVariables(): could not retrieve scalar variable with name: [" +
+          varname + "] from the variable store.";
+        throw ExpressionEvaluateException(error);
       }
       break;
     case IVariableStore::kVector:
       if (!m_variable_handler.GetVector(varname, readvector))
       {
-        return false;
+        const std::string error =
+          "ExpressionContext::CollectVariables(): could not retrieve array variable with name: [" +
+          varname + "] from the variable store.";
+        throw ExpressionEvaluateException(error);
       }
       break;
     case IVariableStore::kUnknown:
-      return false;
+      const std::string error =
+        "ExpressionContext::CollectVariables(): could not determine type of variable with name: [" +
+        varname + "] from the variable store.";
+      throw ExpressionEvaluateException(error);
     }
     data_map.emplace(varname, readvector);
   }
-  return true;
 }
 
-bool ExpressionContext::SetVariable(const ProcessVariableMap& data_map, const std::string& varname)
+void ExpressionContext::SetVariable(const ProcessVariableMap& data_map, const std::string& varname)
 {
   switch (m_variable_handler.GetVariableType(varname))
   {
   case IVariableStore::kScalar:
     if (!m_variable_handler.SetScalar(varname, data_map.at(varname)[0]))
     {
-      return false;
+      const std::string error =
+        "ExpressionContext::SetVariable(): could not write scalar variable with name: [" +
+        varname + "] to the variable store.";
+      throw ExpressionEvaluateException(error);
     }
     break;
   case IVariableStore::kVector:
     if (!m_variable_handler.SetVector(varname, data_map.at(varname)))
     {
-      return false;
+      const std::string error =
+        "ExpressionContext::SetVariable(): could not write array variable with name: [" +
+        varname + "] to the variable store.";
+      throw ExpressionEvaluateException(error);
     }
     break;
   case IVariableStore::kUnknown:
-    return false;
+    const std::string error =
+      "ExpressionContext::SetVariable(): could not determine type of variable with name: [" +
+      varname + "] to the variable store.";
+    throw ExpressionEvaluateException(error);
   }
-  return true;
 }
 
 }  // namespace mathexpr

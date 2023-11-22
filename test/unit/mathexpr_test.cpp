@@ -177,3 +177,12 @@ TEST_F(MathexprTest, Conditions)
   // expression itself evaluates to zero (false)
   EXPECT_TRUE(expr_ctx.EvaluateExpression("c:=0"));
 }
+
+TEST_F(MathexprTest, UppercaseVars)
+{
+  TestDoubleHandler handler;
+  handler.AddScalar("A", 1.0);
+  handler.AddScalar("B", 2.0);
+  ExpressionContext expr_ctx(handler);
+  EXPECT_TRUE(expr_ctx.EvaluateExpression("A < B"));
+}
