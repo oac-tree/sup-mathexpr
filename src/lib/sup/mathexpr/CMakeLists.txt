@@ -1,8 +1,6 @@
 add_library(sup-mathexpr SHARED)
 add_library(sup-mathexpr::sup-mathexpr ALIAS sup-mathexpr) # alias for build-tree usage
 
-target_compile_features(sup-mathexpr PRIVATE cxx_std_11)
-
 set_target_properties(sup-mathexpr PROPERTIES
   VERSION ${LIBVERSION}
   SOVERSION ${LIBSOVERSION}
