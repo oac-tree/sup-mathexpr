@@ -1,3 +1,8 @@
+Changes for 1.2.0:
+
+- Better cmake infrastructure
+- Changed C++ standard for C++17
+
 Changes for 1.1.0:
 
 - Allow for uppercase variable names (disable case insensitivity)
