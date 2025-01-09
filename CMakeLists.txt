@@ -17,7 +17,7 @@
 cmake_minimum_required(VERSION 3.13...3.31)
 project(sup-mathexpr VERSION 1.2.0 LANGUAGES CXX)
 
-option(COVERAGE "Generate unit test coverage information" OFF)
+option(COA_COVERAGE "Generate unit test coverage information" OFF)
 option(COA_EXPORT_BUILD_TREE "Export build tree in /home/user/.cmake registry" OFF)
 option(COA_BUILD_TESTS "Build unit tests" ON)
 option(COA_BUILD_DOCUMENTATION "Build documentation" OFF)
