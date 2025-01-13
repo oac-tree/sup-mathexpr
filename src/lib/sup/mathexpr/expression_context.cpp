@@ -55,16 +55,15 @@ double ExpressionContext::EvaluateExpression(const std::string& expression)
   exprtk::parser<double> parser;
   std::deque<exprtk::parser<double>::dependent_entity_collector::symbol_t> assignment_symbol_list;
 
-  for (auto& var : data_map)
+  for (auto& [varname, varvalue] : data_map)
   {
-    auto varname = var.first;
     switch (m_variable_handler.GetVariableType(varname))
     {
     case IVariableStore::kScalar:
-      symbol_table.add_variable(varname, var.second[0]);
+      symbol_table.add_variable(varname, varvalue[0]);
       break;
     case IVariableStore::kVector:
-      symbol_table.add_vector(varname, var.second);
+      symbol_table.add_vector(varname, varvalue);
       break;
     case IVariableStore::kUnknown:
       break;
