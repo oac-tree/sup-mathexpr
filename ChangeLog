@@ -1,7 +1,7 @@
 Changes for 1.2.0:
 
 - Better cmake infrastructure
-- Changed C++ standard for C++17
+- Changed C++ standard to C++17
 
 Changes for 1.1.0:
 
