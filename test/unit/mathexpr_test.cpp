@@ -1,23 +1,24 @@
 /******************************************************************************
-* $HeadURL: $
-* $Id: $
-*
-* Project       : SUP - MathExpr
-*
-* Description   : Mathematical expression evaluator for SUP
-*
-* Author        : Ricardo Torres (Ext)
-*
-* Copyright (c) : 2010-2025 ITER Organization,
-*                 CS 90 046
-*                 13067 St. Paul-lez-Durance Cedex
-*                 France
-*
-* This file is part of ITER CODAC software.
-* For the terms and conditions of redistribution or use of this software
-* refer to the file ITER-LICENSE.TXT located in the top level directory
-* of the distribution package.
-******************************************************************************/
+ * $HeadURL: $
+ * $Id: $
+ *
+ * Project       : SUP - MathExpr
+ *
+ * Description   : Mathematical expression evaluator for SUP
+ *
+ * Author        : Ricardo Torres (Ext)
+ *
+ * Copyright (c) : 2010-2025 ITER Organization,
+ *                 CS 90 046
+ *                 13067 St. Paul-lez-Durance Cedex
+ *                 France
+ * SPDX-License-Identifier: MIT
+ *
+ * This file is part of ITER CODAC software.
+ * For the terms and conditions of redistribution or use of this software
+ * refer to the file LICENSE located in the top level directory
+ * of the distribution package.
+ ******************************************************************************/
 
 #include <sup/mathexpr/exceptions.h>
 #include <sup/mathexpr/expression_context.h>
