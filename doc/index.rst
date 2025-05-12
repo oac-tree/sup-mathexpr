@@ -4,7 +4,7 @@ Welcome to sup-mathexpr's documentation!
 Overview
 ~~~~~~~~
 
-This library provides an interface to expose the functionality of the `exprtk <https://www.partow.net/programming/exprtk/index.html>` mathematical expression parsing and evaluation library to CODAC's SUP.
+This library provides an interface to expose the functionality of the `exprtk <https://www.partow.net/programming/exprtk/index.html>` mathematical expression parsing and evaluation library to CODAC SUP.
 
 Key Features
 ~~~~~~~~~~~~
