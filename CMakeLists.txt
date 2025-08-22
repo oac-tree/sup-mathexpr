@@ -16,7 +16,7 @@
 # of the distribution package.
 
 cmake_minimum_required(VERSION 3.13...3.31)
-project(sup-mathexpr VERSION 1.3.0 LANGUAGES CXX)
+project(sup-mathexpr VERSION 1.3.1 LANGUAGES CXX)
 
 option(COA_COVERAGE "Generate unit test coverage information" OFF)
 option(COA_EXPORT_BUILD_TREE "Export build tree in /home/user/.cmake registry" OFF)
