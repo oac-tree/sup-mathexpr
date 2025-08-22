@@ -80,16 +80,20 @@ private:
   std::map<std::string, double> m_var_map;
 };
 
-class vectorhandler : public IVariableStore
+class VectorHandler : public IVariableStore
 {
 public:
-  vectorhandler(ProcessVariableMap* vars) : m_vars(vars){};
+  VectorHandler(ProcessVariableMap* vars) : m_vars(vars){};
   VarType GetVariableType(const std::string &varname) const override { return kVector; }
 
   bool SetScalar(const std::string &varname, const double &val) override { return false; }
   bool GetScalar(const std::string &varname, double &val) const override { return false; }
   bool SetVector(const std::string &varname, const std::vector<double> &val) override
   {
+    if (m_vars->find(varname) == m_vars->end())
+    {
+      return false;
+    }
     for (size_t i = 0; i < m_vars->at(varname).size(); ++i)
     {
        m_vars->at(varname)[i] = val[i];
@@ -98,6 +102,10 @@ public:
   }
   bool GetVector(const std::string &varname, std::vector<double> &val) const override
   {
+    if (m_vars->find(varname) == m_vars->end())
+    {
+      return false;
+    }
     val.resize(m_vars->at(varname).size());
     for (size_t i = 0; i < m_vars->at(varname).size(); ++i)
     {
@@ -108,6 +116,45 @@ public:
 
 private:
   ProcessVariableMap* m_vars;
+};
+
+class UnknownTypeHandler : public IVariableStore
+{
+public:
+  VarType GetVariableType(const std::string &varname) const override { return kUnknown; }
+  bool SetScalar(const std::string &, const double &) override { return false; }
+  bool GetScalar(const std::string &, double &) const override { return false; }
+  bool SetVector(const std::string &, const std::vector<double> &) override { return false; }
+  bool GetVector(const std::string &, std::vector<double> &) const override { return false; }
+};
+
+class FailingSetVectorHandler : public IVariableStore
+{
+public:
+  VarType GetVariableType(const std::string &varname) const override { return kVector; }
+  bool SetScalar(const std::string &, const double &) override { return false; }
+  bool GetScalar(const std::string &, double &) const override { return false; }
+  bool SetVector(const std::string &, const std::vector<double> &) override { return false; }
+  bool GetVector(const std::string &varname, std::vector<double> &val) const override
+  {
+    // Provide a vector so assignment is attempted
+    val = {1.0, 2.0};
+    return true;
+  }
+};
+
+class UnknownTypeSetHandler : public IVariableStore
+{
+public:
+  VarType GetVariableType(const std::string &varname) const override { return kUnknown; }
+  bool SetScalar(const std::string &, const double &) override { return false; }
+  bool GetScalar(const std::string &varname, double &val) const override
+  {
+    val = 1.0;
+    return true;
+  }
+  bool SetVector(const std::string &, const std::vector<double> &) override { return false; }
+  bool GetVector(const std::string &, std::vector<double> &) const override { return false; }
 };
 
 class MathexprTest : public ::testing::Test
@@ -128,7 +175,7 @@ TEST_F(MathexprTest, Success)
   vars.emplace("y", y);
   vars.emplace("z", z);
 
-  vectorhandler handler(&vars);
+  VectorHandler handler(&vars);
   ExpressionContext expr_ctx(handler);
 
   try {
@@ -186,4 +233,42 @@ TEST_F(MathexprTest, UppercaseVars)
   handler.AddScalar("B", 2.0);
   ExpressionContext expr_ctx(handler);
   EXPECT_TRUE(expr_ctx.EvaluateExpression("A < B"));
+}
+
+TEST_F(MathexprTest, MissingVectorVariableThrows)
+{
+  ProcessVariableMap vars;
+  // Do not add "missing_vector" to vars
+  VectorHandler handler(&vars);
+  ExpressionContext expr_ctx(handler);
+
+  // Try to use a missing vector variable, should throw
+  EXPECT_THROW(expr_ctx.EvaluateExpression("missing_vector + 1"), ExpressionEvaluateException);
+}
+
+TEST_F(MathexprTest, SetVectorFailsThrows)
+{
+  FailingSetVectorHandler handler;
+  ExpressionContext expr_ctx(handler);
+
+  // Assignment to a vector will trigger SetVector failure
+  EXPECT_THROW(expr_ctx.EvaluateExpression("v:=v+1"), ExpressionEvaluateException);
+}
+
+TEST_F(MathexprTest, SetUnknownTypeThrows)
+{
+  UnknownTypeSetHandler handler;
+  ExpressionContext expr_ctx(handler);
+
+  // Assignment to unknown type triggers exception
+  EXPECT_THROW(expr_ctx.EvaluateExpression("foo:=1"), ExpressionEvaluateException);
+}
+
+TEST_F(MathexprTest, UnknownVariableTypeThrows)
+{
+  UnknownTypeHandler handler;
+  ExpressionContext expr_ctx(handler);
+
+  // Any variable name will trigger the kUnknown branch
+  EXPECT_THROW(expr_ctx.EvaluateExpression("foo + 1"), ExpressionEvaluateException);
 }
