@@ -17,6 +17,8 @@ target_include_directories(${unit-tests}
 
 find_package(GTest REQUIRED)
 
+include(GoogleTest)
+
 target_link_libraries(${unit-tests} PUBLIC GTest::GTest GTest::Main sup-mathexpr)
 
 gtest_discover_tests(${unit-tests})
