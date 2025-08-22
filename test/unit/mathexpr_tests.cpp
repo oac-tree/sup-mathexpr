@@ -148,9 +148,8 @@ class UnknownTypeSetHandler : public IVariableStore
 public:
   VarType GetVariableType(const std::string &varname) const override
   {
-    if (m_first)
+    if (m_first++ < 2)
     {
-      m_first = false;
       return kScalar;
     }
     return kUnknown;
@@ -164,7 +163,7 @@ public:
   bool SetVector(const std::string &, const std::vector<double> &) override { return false; }
   bool GetVector(const std::string &, std::vector<double> &) const override { return false; }
 private:
-  mutable bool m_first = true;
+  mutable int m_first = 0;
 };
 
 class MathexprTest : public ::testing::Test
