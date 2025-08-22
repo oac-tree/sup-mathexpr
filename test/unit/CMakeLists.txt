@@ -7,7 +7,8 @@ set_target_properties(${unit-tests} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${TEST_O
 
 target_sources(${unit-tests}
   PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}/mathexpr_test.cpp
+    exception_tests.cpp
+    mathexpr_tests.cpp
 )
 
 target_include_directories(${unit-tests}
