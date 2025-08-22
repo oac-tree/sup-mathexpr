@@ -38,6 +38,7 @@
         <integrity.level>1</integrity.level>
         <!-- -->
         <buildpath>BUILD</buildpath>
+        <sourcepath>SOURCE</sourcepath>
         <makefile.args>install</makefile.args>
         <coverage>false</coverage>
         <!-- -->
@@ -79,11 +80,11 @@
                 <configuration>
                     <!-- Copy the sources over to target -->
                     <init>
-                        <copy source="src" target="SOURCE/src" />
-                        <copy source="test" target="SOURCE/test" />
-                        <copy source="doc" target="SOURCE/doc" />
-                        <copy source="cmake" target="SOURCE/cmake" />
-                        <copy source="CMakeLists.txt" target="SOURCE/CMakeLists.txt" />
+                        <copy source="src" target="${sourcepath}/src" />
+                        <copy source="test" target="${sourcepath}/test" />
+                        <copy source="doc" target="${sourcepath}/doc" />
+                        <copy source="cmake" target="${sourcepath}/cmake" />
+                        <copy source="CMakeLists.txt" target="${sourcepath}/CMakeLists.txt" />
                     </init>
                     <!-- Configure packaging and dependencies -->
                     <packaging>
@@ -147,7 +148,7 @@
                                 <argument>-DCMAKE_INSTALL_DOCDIR=doc/${project.artifactId}</argument>
                                 <argument>-DTEST_OUTPUT_DIRECTORY=${project.build.directory}/test</argument>
                                 <argument>-DCOA_COVERAGE=${coverage}</argument>
-                                <argument>${project.build.directory}/SOURCE</argument>
+                                <argument>${sourcepath}</argument>
                             </arguments>
                         </configuration>
                     </execution>
