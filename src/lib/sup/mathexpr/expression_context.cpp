@@ -29,9 +29,6 @@
 
 #include <sup/exprtk/exprtk.hpp>
 
-#include <deque>
-#include <stdexcept>
-
 namespace
 {
 constexpr double TRUE_AS_DOUBLE = 1.0;
@@ -61,10 +58,10 @@ double ExpressionContext::EvaluateExpression(const std::string& expression)
     switch (m_variable_handler.GetVariableType(varname))
     {
     case IVariableStore::kScalar:
-      symbol_table.add_variable(varname, varvalue[0]);
+      (void)symbol_table.add_variable(varname, varvalue[0]);
       break;
     case IVariableStore::kVector:
-      symbol_table.add_vector(varname, varvalue);
+      (void)symbol_table.add_vector(varname, varvalue);
       break;
     case IVariableStore::kUnknown:
       break;
@@ -80,7 +77,7 @@ double ExpressionContext::EvaluateExpression(const std::string& expression)
                               "not be properly parsed.";
     throw ExpressionEvaluateException(error);
   }
-  parser.dec().assignment_symbols(assignment_symbol_list);
+  (void)parser.dec().assignment_symbols(assignment_symbol_list);
 
   auto expr_val = exprtk_expression.value();
 
@@ -99,7 +96,7 @@ void ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
                                          const std::string& expression)
 {
   std::vector<std::string> list_vars;
-  exprtk::collect_variables(expression, list_vars);
+  (void)exprtk::collect_variables(expression, list_vars);
 
   std::vector<double> readvector;
   for (const auto& varname : list_vars)
@@ -131,7 +128,7 @@ void ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
         varname + "] from the variable store.";
       throw ExpressionEvaluateException(error);
     }
-    data_map.emplace(varname, readvector);
+    (void)data_map.emplace(varname, readvector);
   }
 }
 
