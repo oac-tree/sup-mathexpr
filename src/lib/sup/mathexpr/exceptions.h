@@ -38,13 +38,13 @@ class MessageException : public std::exception
 {
 public:
   explicit MessageException(std::string message);
-  ~MessageException() = default;
+  ~MessageException() override = default;
+  const char* what() const noexcept override;
+protected:
   MessageException(const MessageException& other) = default;
   MessageException(MessageException&& other) = default;
   MessageException& operator=(const MessageException& other) & = default;
   MessageException& operator=(MessageException&& other) & = default;
-
-  const char* what() const noexcept override;
 private:
   std::string m_message;
 };
@@ -56,7 +56,7 @@ class ExpressionEvaluateException : public MessageException
 {
 public:
   explicit ExpressionEvaluateException(const std::string& message);
-  ~ExpressionEvaluateException() = default;
+  ~ExpressionEvaluateException() override = default;
   ExpressionEvaluateException(const ExpressionEvaluateException& other) = default;
   ExpressionEvaluateException(ExpressionEvaluateException&& other) = default;
   ExpressionEvaluateException& operator=(const ExpressionEvaluateException& other) & = default;
