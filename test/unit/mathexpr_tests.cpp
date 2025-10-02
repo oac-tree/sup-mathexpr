@@ -43,7 +43,7 @@ public:
     m_var_map[varname] = val;
   }
 
-  VarType GetVariableType(const std::string &varname) const override { return kScalar; }
+  VarType GetVariableType(const std::string &varname) const override { return VarType::kScalar; }
   bool SetScalar(const std::string &varname, const double &val) override
   {
     if (varname == "readonly")
@@ -84,7 +84,7 @@ class VectorHandler : public IVariableStore
 {
 public:
   VectorHandler(ProcessVariableMap* vars) : m_vars(vars){};
-  VarType GetVariableType(const std::string &varname) const override { return kVector; }
+  VarType GetVariableType(const std::string &varname) const override { return VarType::kVector; }
 
   bool SetScalar(const std::string &varname, const double &val) override { return false; }
   bool GetScalar(const std::string &varname, double &val) const override { return false; }
@@ -121,7 +121,7 @@ private:
 class UnknownTypeHandler : public IVariableStore
 {
 public:
-  VarType GetVariableType(const std::string &varname) const override { return kUnknown; }
+  VarType GetVariableType(const std::string &varname) const override { return VarType::kUnknown; }
   bool SetScalar(const std::string &, const double &) override { return false; }
   bool GetScalar(const std::string &, double &) const override { return false; }
   bool SetVector(const std::string &, const std::vector<double> &) override { return false; }
@@ -131,7 +131,7 @@ public:
 class FailingSetVectorHandler : public IVariableStore
 {
 public:
-  VarType GetVariableType(const std::string &varname) const override { return kVector; }
+  VarType GetVariableType(const std::string &varname) const override { return VarType::kVector; }
   bool SetScalar(const std::string &, const double &) override { return false; }
   bool GetScalar(const std::string &, double &) const override { return false; }
   bool SetVector(const std::string &, const std::vector<double> &) override { return false; }
@@ -150,9 +150,9 @@ public:
   {
     if (m_first++ < 2)
     {
-      return kScalar;
+      return VarType::kScalar;
     }
-    return kUnknown;
+    return VarType::kUnknown;
   }
   bool SetScalar(const std::string &, const double &) override { return false; }
   bool GetScalar(const std::string &varname, double &val) const override

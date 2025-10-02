@@ -57,13 +57,13 @@ double ExpressionContext::EvaluateExpression(const std::string& expression)
   {
     switch (m_variable_handler.GetVariableType(varname))
     {
-    case IVariableStore::kScalar:
+    case IVariableStore::VarType::kScalar:
       (void)symbol_table.add_variable(varname, varvalue[0]);
       break;
-    case IVariableStore::kVector:
+    case IVariableStore::VarType::kVector:
       (void)symbol_table.add_vector(varname, varvalue);
       break;
-    case IVariableStore::kUnknown:
+    case IVariableStore::VarType::kUnknown:
       break;
     }
   }
@@ -103,7 +103,7 @@ void ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
   {
     switch (m_variable_handler.GetVariableType(varname))
     {
-    case IVariableStore::kScalar:
+    case IVariableStore::VarType::kScalar:
       readvector.resize(1);
       if (!m_variable_handler.GetScalar(varname, readvector[0]))
       {
@@ -113,7 +113,7 @@ void ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
         throw ExpressionEvaluateException(error);
       }
       break;
-    case IVariableStore::kVector:
+    case IVariableStore::VarType::kVector:
       if (!m_variable_handler.GetVector(varname, readvector))
       {
         const std::string error =
@@ -122,7 +122,7 @@ void ExpressionContext::CollectVariables(ProcessVariableMap& data_map,
         throw ExpressionEvaluateException(error);
       }
       break;
-    case IVariableStore::kUnknown:
+    case IVariableStore::VarType::kUnknown:
       const std::string error =
         "ExpressionContext::CollectVariables(): could not determine type of variable with name: [" +
         varname + "] from the variable store.";
@@ -136,7 +136,7 @@ void ExpressionContext::SetVariable(const ProcessVariableMap& data_map, const st
 {
   switch (m_variable_handler.GetVariableType(varname))
   {
-  case IVariableStore::kScalar:
+  case IVariableStore::VarType::kScalar:
     if (!m_variable_handler.SetScalar(varname, data_map.at(varname)[0]))
     {
       const std::string error =
@@ -145,7 +145,7 @@ void ExpressionContext::SetVariable(const ProcessVariableMap& data_map, const st
       throw ExpressionEvaluateException(error);
     }
     break;
-  case IVariableStore::kVector:
+  case IVariableStore::VarType::kVector:
     if (!m_variable_handler.SetVector(varname, data_map.at(varname)))
     {
       const std::string error =
@@ -154,7 +154,7 @@ void ExpressionContext::SetVariable(const ProcessVariableMap& data_map, const st
       throw ExpressionEvaluateException(error);
     }
     break;
-  case IVariableStore::kUnknown:
+  case IVariableStore::VarType::kUnknown:
     const std::string error =
       "ExpressionContext::SetVariable(): could not determine type of variable with name: [" +
       varname + "] to the variable store.";
