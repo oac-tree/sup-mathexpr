@@ -23,8 +23,7 @@
 #ifndef SUP_MATHEXPR_I_VARIABLE_STORE_H_
 #define SUP_MATHEXPR_I_VARIABLE_STORE_H_
 
-#include <sup/dto/basic_scalar_types.h>
-
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -39,7 +38,7 @@ namespace mathexpr
 class IVariableStore
 {
 public:
-  enum class VarType : sup::dto::uint32
+  enum class VarType : uint32_t
   {
     kScalar = 0,
     kVector,
