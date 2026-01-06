@@ -16,7 +16,7 @@
 # of the distribution package.
 
 cmake_minimum_required(VERSION 3.13...3.31)
-project(sup-mathexpr VERSION 1.3.1 LANGUAGES CXX)
+project(sup-mathexpr VERSION 1.4.0 LANGUAGES CXX)
 
 option(COA_COVERAGE "Generate unit test coverage information" OFF)
 option(COA_PARASOFT_INTEGRATION "Parasoft integration" OFF)
